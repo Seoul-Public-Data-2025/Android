@@ -1,11 +1,17 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "com.maumpeace.safeapp"
     compileSdk = 35
+
+    kapt {
+        correctErrorTypes = true
+    }
 
     defaultConfig {
         applicationId = "com.maumpeace.safeapp"
@@ -44,6 +50,12 @@ dependencies {
 
     // 공통 모듈 (KakaoSdk.init 등)
     implementation(libs.v2.common)
+
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+
+    // hiltViewModel 사용하기 위해 필요
+    implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

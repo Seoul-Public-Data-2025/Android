@@ -7,7 +7,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
