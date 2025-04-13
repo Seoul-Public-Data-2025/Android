@@ -17,8 +17,8 @@ android {
         applicationId = "com.maumpeace.safeapp"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,6 +56,17 @@ dependencies {
 
     // hiltViewModel 사용하기 위해 필요
     implementation(libs.androidx.hilt.navigation.compose)
+
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.core)
+
+    // Timber 로그
+    implementation(libs.timber)
+
+    // Chucker 로그 (디버그용 HTTP 로깅)
+    debugImplementation(libs.chucker.debug)
+    releaseImplementation(libs.chucker.release)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
