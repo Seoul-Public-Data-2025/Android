@@ -18,7 +18,7 @@ interface ApiService {
      * - 서버에 카카오 accessToken, email을 전달
      * - 응답으로 서버 자체 JWT access/refresh 토큰 반환
      */
-    @POST("auth/kakao/login/")
+    @POST("auth/kakao-login/")
     suspend fun loginWithKakao(
         @Body fetchLoginData: FetchLoginData
     ): LoginData

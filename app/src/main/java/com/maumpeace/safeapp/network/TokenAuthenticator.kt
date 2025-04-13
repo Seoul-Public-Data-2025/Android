@@ -27,7 +27,7 @@ class TokenAuthenticator(
 
         // Retrofit 인스턴스 구성 (직접 생성, DI 사용 안함)
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://13.209.8.252:8000/api/")
+            .baseUrl("http://54.85.78.12:8000/api/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

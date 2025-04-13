@@ -38,10 +38,15 @@ class LoginActivity : AppCompatActivity() {
         loginViewModel.loginData.observe(this) { loginData ->
             // 로그인 성공 처리
             loginData?.let {
-                getSharedPreferences("auth", MODE_PRIVATE)
-                    .edit { putBoolean("isLoginSuccess", true) }
+                getSharedPreferences("auth", MODE_PRIVATE).edit {
+                        putBoolean(
+                            "isLoginSuccess",
+                            true
+                        )
+                    }
 
-                Toast.makeText(this, "${loginData.result.accessToken} 로그인 성공", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${loginData.result.accessToken} 로그인 성공", Toast.LENGTH_SHORT)
+                    .show()
                 enableLoginButton() // 버튼 다시 활성화
                 navigateToMain()
             }
@@ -72,7 +77,8 @@ class LoginActivity : AppCompatActivity() {
 
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             if (error != null) {
-                Toast.makeText(this, "카카오 로그인 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "카카오 로그인 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT)
+                    .show()
                 enableLoginButton()
             } else if (token != null) {
                 getKakaoUserInfo(token.accessToken)

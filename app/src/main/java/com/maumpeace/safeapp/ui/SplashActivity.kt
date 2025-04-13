@@ -27,8 +27,8 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // SharedPreferences에서 로그인 성공 여부 확인
-        val isLoginSuccess = getSharedPreferences("auth", MODE_PRIVATE)
-            .getBoolean("isLoginSuccess", false)
+        val isLoginSuccess =
+            getSharedPreferences("auth", MODE_PRIVATE).getBoolean("isLoginSuccess", false)
 
         val accessToken = TokenManager.getAccessToken(this)
 
