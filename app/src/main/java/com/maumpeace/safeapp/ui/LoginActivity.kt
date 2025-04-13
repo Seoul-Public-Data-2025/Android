@@ -5,13 +5,17 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
-import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.ActivityLoginBinding
 import com.maumpeace.safeapp.viewModel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * ✅ LoginActivity
+ * - 카카오 로그인 → 서버에 accessToken 전달 → JWT 수신 후 Main 진입
+ */
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
@@ -23,60 +27,97 @@ class LoginActivity : AppCompatActivity() {
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.btnKakaoLogin.setOnClickListener {
-            kakaoLogin()
-        }
+        setupObservers()
+        setupListeners()
     }
 
-    private fun fetchLogin(email: String, code: String) {
-        loginViewModel.fetchLoginData(email, code)
+    /**
+     * 🔄 ViewModel의 상태 관찰
+     */
+    private fun setupObservers() {
         loginViewModel.loginData.observe(this) { loginData ->
-            if (loginData != null && loginData.success) {
-                Toast.makeText(this, "${email}님 환영합니다!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, MainActivity::class.java)
-                startActivity(intent)
-                overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
-                finish()
+            // 로그인 성공 처리
+            loginData?.let {
+                getSharedPreferences("auth", MODE_PRIVATE)
+                    .edit { putBoolean("isLoginSuccess", true) }
+
+                Toast.makeText(this, "${loginData.result.accessToken} 로그인 성공", Toast.LENGTH_SHORT).show()
+                enableLoginButton() // 버튼 다시 활성화
+                navigateToMain()
             }
         }
-        loginViewModel.errorLiveData.observe(this) { error ->
+
+        loginViewModel.errorMessage.observe(this) { error ->
             error?.let {
-                if (it.contains("401") || it.contains("500") || it.contains("502") || error.contains(
-                        "JSON"
-                    )
-                ) {
-                    Toast.makeText(this, "점검중", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
-                }
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                enableLoginButton() // 에러 나도 버튼 다시 활성화
             }
         }
     }
 
-    private fun kakaoLogin() {
+    /**
+     * 🧑 사용자 입력 리스너 설정
+     */
+    private fun setupListeners() {
+        binding.btnKakaoLogin.setOnClickListener {
+            performKakaoLogin()
+        }
+    }
+
+    /**
+     * 🔐 카카오 로그인 시도 → accessToken 획득
+     */
+    private fun performKakaoLogin() {
+        disableLoginButton() // 버튼 비활성화
+
         val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
             if (error != null) {
-                Toast.makeText(this, "로그인 실패", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "카카오 로그인 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                enableLoginButton()
             } else if (token != null) {
-                val accessToken = token.accessToken
-                getUserInfo(accessToken)
+                getKakaoUserInfo(token.accessToken)
             }
         }
 
         if (UserApiClient.instance.isKakaoTalkLoginAvailable(this)) {
             UserApiClient.instance.loginWithKakaoTalk(this, callback = callback)
         } else {
-            UserApiClient.instance.loginWithKakaoAccount(this, prompts = null, callback = callback)
+            UserApiClient.instance.loginWithKakaoAccount(this, callback = callback)
         }
     }
 
-    private fun getUserInfo(accessToken: String) {
+    /**
+     * 👤 카카오 유저 정보(email) 획득 후 서버 로그인 시도
+     */
+    private fun getKakaoUserInfo(kakaoAccessToken: String) {
         UserApiClient.instance.me { user, error ->
-            if (error != null) {
-                Toast.makeText(this, "사용자 정보 요청 실패", Toast.LENGTH_SHORT).show()
-            } else if (user != null) {
-                fetchLogin(user.kakaoAccount?.email.toString(), accessToken)
+            if (error != null || user?.kakaoAccount?.email == null) {
+                Toast.makeText(this, "카카오 사용자 정보 요청 실패", Toast.LENGTH_SHORT).show()
+                enableLoginButton()
+            } else {
+                val email = user.kakaoAccount?.email.toString()
+                loginViewModel.loginWithKakao(email, kakaoAccessToken)
             }
         }
+    }
+
+    private fun disableLoginButton() {
+        binding.btnKakaoLogin.isEnabled = false
+        binding.btnKakaoLogin.alpha = 0.5f
+    }
+
+    private fun enableLoginButton() {
+        binding.btnKakaoLogin.isEnabled = true
+        binding.btnKakaoLogin.alpha = 1f
+    }
+
+    /**
+     * 🏠 MainActivity로 전환
+     */
+    private fun navigateToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 }
