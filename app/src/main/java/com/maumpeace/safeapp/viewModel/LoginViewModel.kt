@@ -64,26 +64,6 @@ class LoginViewModel @Inject constructor(
     }
 
     /**
-     * 🔁 accessToken 수동 갱신 (Splash 등에서 사용 가능)
-     */
-    fun refreshAccessTokenIfNeeded() {
-        val refreshToken = TokenManager.getRefreshToken(GlobalApplication.INSTANCE) ?: return
-
-        viewModelScope.launch {
-            try {
-                val result = loginRepository.refreshToken(refreshToken)
-                if (result.result.accessToken != null) {
-                    TokenManager.saveAccessToken(
-                        GlobalApplication.INSTANCE, result.result.accessToken!!
-                    )
-                }
-            } catch (e: Exception) {
-                _errorMessage.postValue("토큰 갱신 실패: ${e.message}")
-            }
-        }
-    }
-
-    /**
      * 🔓 로그아웃 처리
      */
     fun logout(onComplete: (Boolean) -> Unit) {
