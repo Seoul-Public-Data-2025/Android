@@ -57,9 +57,6 @@ class LoginActivity : AppCompatActivity() {
                             true
                         )
                     }
-
-                Toast.makeText(this, "${loginData.result.accessToken} 로그인 성공", Toast.LENGTH_SHORT)
-                    .show()
                 enableLoginButton() // 버튼 다시 활성화
                 navigateToMain()
             }
