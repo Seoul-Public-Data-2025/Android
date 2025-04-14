@@ -2,7 +2,12 @@ package com.maumpeace.safeapp.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.WindowInsets
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.user.UserApiClient
@@ -26,14 +31,29 @@ class SplashActivity : AppCompatActivity() {
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // SharedPreferences에서 로그인 성공 여부 확인
+        // API 30 이상에서 전체화면 설정
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.insetsController?.hide(WindowInsets.Type.statusBars())
+        } else {
+            @Suppress("DEPRECATION") window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+        }
+
+
+        // 2초 후 실행
+        Handler(Looper.getMainLooper()).postDelayed({
+            proceedToNextScreen()
+        }, 2000)
+    }
+
+    private fun proceedToNextScreen() {
         val isLoginSuccess =
             getSharedPreferences("auth", MODE_PRIVATE).getBoolean("isLoginSuccess", false)
-
         val accessToken = TokenManager.getAccessToken(this)
 
         if (isLoginSuccess && !accessToken.isNullOrBlank() && AuthApiClient.instance.hasToken()) {
-            // 카카오 accessToken 유효성 확인
             UserApiClient.instance.accessTokenInfo { _, error ->
                 val intent = if (error != null) {
                     Intent(this, LoginActivity::class.java)
@@ -45,7 +65,6 @@ class SplashActivity : AppCompatActivity() {
                 finish()
             }
         } else {
-            // 로그인 필요
             startActivity(Intent(this, LoginActivity::class.java))
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
             finish()
