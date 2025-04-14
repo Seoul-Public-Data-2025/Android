@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.v2.common)
 
     implementation(libs.hilt.android)
+    implementation(libs.google.material)
     kapt(libs.hilt.compiler)
 
     // hiltViewModel 사용하기 위해 필요
@@ -67,6 +68,10 @@ dependencies {
     // Chucker 로그 (디버그용 HTTP 로깅)
     debugImplementation(libs.chucker.debug)
     releaseImplementation(libs.chucker.release)
+
+    //네이버 지도
+    implementation ("com.naver.maps:map-sdk:3.21.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

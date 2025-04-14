@@ -8,8 +8,7 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
-        android:layout_height="651dp"
-        android:layout_marginBottom="80dp" />
+        android:layout_height="match_parent" />
 
     <!-- 🔴 안심 (중앙 강조용 버튼) -->
     <LinearLayout

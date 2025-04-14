@@ -3,6 +3,7 @@ package com.maumpeace.safeapp.util
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.naver.maps.geometry.LatLng
 
 /**
  * ✅ TokenManager
