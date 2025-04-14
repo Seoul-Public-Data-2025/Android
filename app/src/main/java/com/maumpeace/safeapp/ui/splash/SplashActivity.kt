@@ -1,4 +1,4 @@
-package com.maumpeace.safeapp.ui
+package com.maumpeace.safeapp.ui.splash
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.databinding.ActivitySplashBinding
+import com.maumpeace.safeapp.ui.login.LoginActivity
+import com.maumpeace.safeapp.ui.main.MainActivity
 import com.maumpeace.safeapp.util.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
 

@@ -1,4 +1,4 @@
-package com.maumpeace.safeapp.ui
+package com.maumpeace.safeapp.ui.login
 
 import android.content.Intent
 import android.os.Build
@@ -12,6 +12,7 @@ import androidx.core.content.edit
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.databinding.ActivityLoginBinding
+import com.maumpeace.safeapp.ui.main.MainActivity
 import com.maumpeace.safeapp.viewModel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
