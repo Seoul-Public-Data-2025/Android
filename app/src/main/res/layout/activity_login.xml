@@ -8,13 +8,20 @@
     tools:context=".ui.LoginActivity">
 
     <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/iv"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_bg_login" />
+
+    <ImageView
         android:id="@+id/btn_kakao_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="25dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="16dp"
         android:adjustViewBounds="true"
-        android:contentDescription="@string/kakao_logo"
+        android:contentDescription="@string/iv"
         android:src="@drawable/kakao_login_large_wide"
         app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

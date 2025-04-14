@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">마음편</string>
-    <string name="kakao_logo">iv</string>
+    <string name="iv">iv</string>
     <string name="text_01">로그아웃</string>
 </resources>
