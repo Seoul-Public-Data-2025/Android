@@ -15,7 +15,7 @@
         android:elevation="5dp"
         android:padding="8dp"
         android:src="@drawable/ic_map_my_location"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.naver.maps.map.MapView
@@ -52,6 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="@string/text_03"
+                android:textColor="@color/black_1e1f1f"
                 android:textSize="16dp"
                 android:textStyle="bold"
                 android:typeface="normal"
@@ -63,8 +64,9 @@
                 android:layout_height="wrap_content"
                 android:columnCount="4">
 
-                <!-- 예시: 경찰서 -->
+                <!-- 경찰서 -->
                 <LinearLayout
+                    android:id="@+id/ll_police"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnSpan="1"
@@ -77,7 +79,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
-                        android:src="@drawable/ic_setting" />
+                        android:src="@drawable/ic_police" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -91,6 +93,7 @@
 
                 <!-- CCTV -->
                 <LinearLayout
+                    android:id="@+id/ll_cctv"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnSpan="1"
@@ -103,7 +106,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
-                        android:src="@drawable/ic_setting" />
+                        android:src="@drawable/ic_cctv" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -117,6 +120,7 @@
 
                 <!-- 안전 시설물 -->
                 <LinearLayout
+                    android:id="@+id/ll_safety_light"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnSpan="1"
@@ -129,7 +133,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
-                        android:src="@drawable/ic_setting" />
+                        android:src="@drawable/ic_safety_light" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -143,6 +147,7 @@
 
                 <!-- 안심지킴이집 -->
                 <LinearLayout
+                    android:id="@+id/ll_safety_facility"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnSpan="1"
@@ -155,7 +160,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
-                        android:src="@drawable/ic_setting" />
+                        android:src="@drawable/ic_safety_facility" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -175,6 +180,7 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
                 android:text="@string/text_08"
+                android:textColor="@color/black_1e1f1f"
                 android:textSize="16dp"
                 android:textStyle="bold"
                 android:typeface="normal"
@@ -189,6 +195,7 @@
 
                 <!-- 안전경로 안내 -->
                 <LinearLayout
+                    android:id="@+id/ll_safety_directions"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_columnSpan="1"
@@ -201,7 +208,7 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
-                        android:src="@drawable/ic_setting" />
+                        android:src="@drawable/ic_safety_directions" />
 
                     <TextView
                         android:layout_width="wrap_content"
