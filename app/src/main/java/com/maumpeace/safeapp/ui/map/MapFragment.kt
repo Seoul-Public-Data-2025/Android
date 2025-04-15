@@ -30,7 +30,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
-    lateinit var naverMap: NaverMap
+    private lateinit var naverMap: NaverMap
     private lateinit var locationSource: FusedLocationSource
     private var locationBtnIsClickable: Boolean = true
 
@@ -101,7 +101,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             else BottomSheetBehavior.STATE_EXPANDED
     }
 
-    fun naverMapMoveCamera(naverMap: NaverMap) {
+    private fun naverMapMoveCamera(naverMap: NaverMap) {
         naverMap.moveCamera(
             CameraUpdate.scrollTo(
                 LatLng(
@@ -111,7 +111,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         )
     }
 
-    fun getLastKnownLocation(naverMap: NaverMap) {
+    private fun getLastKnownLocation(naverMap: NaverMap) {
         if (requireContext().let {
                 ActivityCompat.checkSelfPermission(
                     it, Manifest.permission.ACCESS_FINE_LOCATION
@@ -146,14 +146,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val overlay = binding.emergencyOverlay
         val btnCancel = binding.btnEmergencyCancel
         val btnConfirm = binding.btnEmergencyConfirm
+        val ivMyLocation = binding.ivMyLocation
 
+        ivMyLocation.visibility = View.GONE
         overlay.visibility = View.VISIBLE
 
         btnCancel.setOnClickListener {
+            ivMyLocation.visibility = View.VISIBLE
             overlay.visibility = View.GONE
         }
 
         btnConfirm.setOnClickListener {
+            ivMyLocation.visibility = View.VISIBLE
             overlay.visibility = View.GONE
             Toast.makeText(requireContext(), "안심 경로 안내를 시작합니다.", Toast.LENGTH_SHORT).show()
             if (locationBtnIsClickable) {

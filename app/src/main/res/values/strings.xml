@@ -3,6 +3,16 @@
     <string name="iv">iv</string>
     <string name="btn">btn</string>
     <string name="text_01">로그아웃</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_02">안심</string>
+    <string name="text_03">표시</string>
+    <string name="text_04">CCTV</string>
+    <string name="text_05">안전 시설물</string>
+    <string name="text_06">경찰서</string>
+    <string name="text_07">지킴이집</string>
+    <string name="text_08">서비스</string>
+    <string name="text_09">안전경로 안내</string>
+    <string name="text_10">긴급 알림</string>
+    <string name="text_11">근처 안심경로로\n안내를 시작할까요?</string>
+    <string name="text_12">취소</string>
+    <string name="text_13">안내 시작</string>
 </resources>

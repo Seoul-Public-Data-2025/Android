@@ -26,10 +26,8 @@ class TokenAuthenticator(
         if (responseCount(response) >= 2) return null
 
         // Retrofit 인스턴스 구성 (직접 생성, DI 사용 안함)
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://54.85.78.12:8000/api/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        val retrofit = Retrofit.Builder().baseUrl("http://43.201.36.238:8000/api/")
+            .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(ApiService::class.java)
 
@@ -50,9 +48,7 @@ class TokenAuthenticator(
                 TokenManager.saveTokens(context, accessToken, newRefreshToken)
 
                 // 원래 요청 재시도 (accessToken만 교체)
-                response.request.newBuilder()
-                    .header("Authorization", "Bearer $accessToken")
-                    .build()
+                response.request.newBuilder().header("Authorization", "Bearer $accessToken").build()
             } else {
                 null // refreshToken도 만료되었거나 오류
             }

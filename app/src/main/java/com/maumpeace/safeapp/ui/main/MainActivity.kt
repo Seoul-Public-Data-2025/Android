@@ -40,15 +40,12 @@ class MainActivity : AppCompatActivity() {
         startLocationUpdates()
     }
 
-
     private fun setupFragments() {
         mapFragment = MapFragment()
         settingsFragment = SettingsFragment()
 
-        supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container, mapFragment, "MAP")
-            .add(R.id.fragment_container, settingsFragment, "SETTINGS")
-            .hide(settingsFragment)
+        supportFragmentManager.beginTransaction().add(R.id.fragment_container, mapFragment, "MAP")
+            .add(R.id.fragment_container, settingsFragment, "SETTINGS").hide(settingsFragment)
             .commit()
     }
 
@@ -85,7 +82,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // 위치 권한을 확인하고 권한이 없다면 반환
-    fun startLocationUpdates() {
+    private fun startLocationUpdates() {
         if (ContextCompat.checkSelfPermission(
                 this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
@@ -107,8 +104,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        LocationServices.getFusedLocationProviderClient(this)
-            .requestLocationUpdates(
+        LocationServices.getFusedLocationProviderClient(this).requestLocationUpdates(
                 locationRequest, locationCallback, Looper.getMainLooper()
             )
     }

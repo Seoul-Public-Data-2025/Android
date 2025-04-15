@@ -43,7 +43,6 @@ class SplashActivity : AppCompatActivity() {
             )
         }
 
-
         // 2초 후 실행
         Handler(Looper.getMainLooper()).postDelayed({
             proceedToNextScreen()

@@ -51,9 +51,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="표시"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:text="@string/text_03"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
 
             <GridLayout
                 android:id="@+id/grid_display"
@@ -68,18 +70,23 @@
                     android:layout_columnSpan="1"
                     android:layout_columnWeight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
                         android:src="@drawable/ic_setting" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="경찰서"
-                        android:textSize="12sp" />
+                        android:text="@string/text_06"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
                 </LinearLayout>
 
                 <!-- CCTV -->
@@ -89,18 +96,23 @@
                     android:layout_columnSpan="1"
                     android:layout_columnWeight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
                         android:src="@drawable/ic_setting" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CCTV"
-                        android:textSize="12sp" />
+                        android:text="@string/text_04"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
                 </LinearLayout>
 
                 <!-- 안전 시설물 -->
@@ -110,18 +122,23 @@
                     android:layout_columnSpan="1"
                     android:layout_columnWeight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
                         android:src="@drawable/ic_setting" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="안전 시설물"
-                        android:textSize="12sp" />
+                        android:text="@string/text_05"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
                 </LinearLayout>
 
                 <!-- 안심지킴이집 -->
@@ -131,18 +148,23 @@
                     android:layout_columnSpan="1"
                     android:layout_columnWeight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
                         android:src="@drawable/ic_setting" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="지킴이집"
-                        android:textSize="12sp" />
+                        android:text="@string/text_07"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
                 </LinearLayout>
             </GridLayout>
 
@@ -152,9 +174,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
-                android:text="서비스"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:text="@string/text_08"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
 
             <GridLayout
                 android:id="@+id/grid_service"
@@ -170,18 +194,23 @@
                     android:layout_columnSpan="1"
                     android:layout_columnWeight="1"
                     android:gravity="center"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
 
                     <ImageView
                         android:layout_width="40dp"
                         android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
                         android:src="@drawable/ic_setting" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="안전경로 안내"
-                        android:textSize="12sp" />
+                        android:text="@string/text_09"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -226,30 +255,37 @@
             android:id="@+id/emergency_overlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#80000000"
+            android:background="@color/black_80000000"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="32dp"
-            android:visibility="gone">
+            android:visibility="gone"
+            tools:ignore="UselessParent">
 
             <TextView
                 android:id="@+id/text_emergency_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:text="긴급 알림"
+                android:text="@string/text_10"
                 android:textColor="@android:color/holo_red_dark"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:textSize="32dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
 
             <TextView
                 android:id="@+id/text_emergency_message"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:text="근처 안심경로로 안내를 시작할까요?"
+                android:gravity="center"
+                android:text="@string/text_11"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="24dp"
+                android:textStyle="normal"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -263,8 +299,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:backgroundTint="@android:color/darker_gray"
-                    android:text="취소"
-                    android:textColor="@android:color/white" />
+                    android:text="@string/text_12"
+                    android:textColor="@android:color/white"
+                    android:textSize="16dp"
+                    android:textStyle="normal"
+                    android:typeface="normal"
+                    tools:ignore="SpUsage" />
 
                 <Space
                     android:layout_width="16dp"
@@ -276,8 +316,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:backgroundTint="@android:color/holo_red_dark"
-                    android:text="안내 시작"
-                    android:textColor="@android:color/white" />
+                    android:text="@string/text_13"
+                    android:textColor="@android:color/white"
+                    android:textSize="16dp"
+                    android:textStyle="normal"
+                    android:typeface="normal"
+                    tools:ignore="SpUsage" />
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>

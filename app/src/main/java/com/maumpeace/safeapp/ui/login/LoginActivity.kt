@@ -53,11 +53,10 @@ class LoginActivity : AppCompatActivity() {
             // 로그인 성공 처리
             loginData?.let {
                 getSharedPreferences("auth", MODE_PRIVATE).edit {
-                        putBoolean(
-                            "isLoginSuccess",
-                            true
-                        )
-                    }
+                    putBoolean(
+                        "isLoginSuccess", true
+                    )
+                }
                 enableLoginButton() // 버튼 다시 활성화
                 navigateToMain()
             }

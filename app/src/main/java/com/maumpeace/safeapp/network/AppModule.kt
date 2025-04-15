@@ -1,6 +1,5 @@
 package com.maumpeace.safeapp.network
 
-import android.content.Context
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.util.GlobalApplication
 import com.maumpeace.safeapp.util.TokenManager
@@ -18,7 +17,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val BASE_URL = "http://54.85.78.12:8000/api/"
+    private const val BASE_URL = "http://43.201.36.238:8000/api/"
 
     /**
      * ✅ AccessToken을 헤더에 자동 추가하는 Interceptor
@@ -57,11 +56,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        return Retrofit.Builder().baseUrl(BASE_URL).client(client)
+            .addConverterFactory(GsonConverterFactory.create()).build()
     }
 
     /**
