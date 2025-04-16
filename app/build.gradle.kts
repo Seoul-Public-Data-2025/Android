@@ -70,8 +70,10 @@ dependencies {
     releaseImplementation(libs.chucker.release)
 
     //네이버 지도
-    implementation ("com.naver.maps:map-sdk:3.21.0")
-    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation (libs.map.sdk)
+    implementation(libs.play.services.location)
+
+    implementation (libs.circleimageview)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

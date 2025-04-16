@@ -1,5 +1,6 @@
 [versions]
 agp = "8.9.1"
+circleimageview = "3.1.0"
 googleMaterial = "1.3.0"
 hiltAndroid = "2.56.1"
 hiltNavigationCompose = "1.2.0"
@@ -9,9 +10,11 @@ junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
+mapSdk = "3.21.0"
 material = "1.10.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
+playServicesLocation = "21.3.0"
 v2UserVersion = "2.21.1"
 retrofit = "2.9.0"
 okhttp = "4.12.0"
@@ -22,7 +25,9 @@ materialVersion = "1.12.0"
 [libraries]
 chucker-debug = { group = "com.github.chuckerteam.chucker", name = "library", version.ref = "chucker" }
 chucker-release = { group = "com.github.chuckerteam.chucker", name = "library-no-op", version.ref = "chucker" }
-material-v130 = { module = "com.google.android.material:material", version.ref = "googleMaterial" }
+circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
+map-sdk = { module = "com.naver.maps:map-sdk", version.ref = "mapSdk" }
+play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "playServicesLocation" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 retrofit-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
