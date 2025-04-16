@@ -13,6 +13,8 @@ object TokenManager {
     private const val PREF_NAME = "auth"
     private const val KEY_ACCESS_TOKEN = "access_token"
     private const val KEY_REFRESH_TOKEN = "refresh_token"
+    private const val PROFILE = "profile"
+    private const val NICKNAME = "nickname"
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -51,6 +53,20 @@ object TokenManager {
     }
 
     /**
+     * 🧾 profile 조회
+     */
+    fun getProfile(context: Context): String? {
+        return getPrefs(context).getString(PROFILE, null)
+    }
+
+    /**
+     * 🧾 nickname 조회
+     */
+    fun getNickname(context: Context): String? {
+        return getPrefs(context).getString(NICKNAME, null)
+    }
+
+    /**
      * ❌ accessToken 삭제
      */
     fun clearAccessToken(context: Context) {
@@ -79,12 +95,19 @@ object TokenManager {
     }
 
     /**
-     * ✅ access + refreshToken 한 번에 저장
+     * ✅ access + refreshToken + kakao profile + kakao nickname 한 번에 저장
      */
     fun saveTokens(context: Context, accessToken: String?, refreshToken: String?) {
         getPrefs(context).edit {
             putString(KEY_ACCESS_TOKEN, accessToken)
             putString(KEY_REFRESH_TOKEN, refreshToken)
+        }
+    }
+
+    fun saveUserInfo(context: Context, profile: String, nickname: String) {
+        getPrefs(context).edit {
+            putString(PROFILE, profile)
+            putString(NICKNAME, nickname)
         }
     }
 }

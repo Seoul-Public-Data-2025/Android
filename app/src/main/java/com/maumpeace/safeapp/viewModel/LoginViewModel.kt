@@ -35,7 +35,7 @@ class LoginViewModel @Inject constructor(
     /**
      * 🔐 카카오 로그인 처리
      */
-    fun loginWithKakao(email: String, kakaoAccessToken: String) {
+    fun loginWithKakao(profile: String, nickname: String, email: String, kakaoAccessToken: String) {
         _loginData.value = null
         _errorMessage.value = null
 
@@ -48,6 +48,11 @@ class LoginViewModel @Inject constructor(
                         context = GlobalApplication.INSTANCE.applicationContext,
                         accessToken = result.result.accessToken,
                         refreshToken = result.result.refreshToken
+                    )
+                    TokenManager.saveUserInfo(
+                        context = GlobalApplication.INSTANCE.applicationContext,
+                        profile = profile,
+                        nickname = nickname
                     )
                     _loginData.postValue(result)
                 } else {

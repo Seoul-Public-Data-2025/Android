@@ -180,7 +180,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         )
         naverMap.lightness = 0.0f
         naverMap.maxZoom = 19.0
-        naverMap.minZoom = 9.0
+        naverMap.minZoom = 13.0
     }
 
     override fun onStart() {
@@ -212,10 +212,5 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         super.onDestroyView()
         binding.mapView.onDestroy()
         _binding = null
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        binding.mapView.onLowMemory()
     }
 }
