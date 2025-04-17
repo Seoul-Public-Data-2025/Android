@@ -1,6 +1,7 @@
 package com.maumpeace.safeapp.network
 
 import com.maumpeace.safeapp.repository.LoginRepository
+import com.maumpeace.safeapp.repository.LogoutRepository
 import com.maumpeace.safeapp.util.GlobalApplication
 import com.maumpeace.safeapp.util.TokenManager
 import dagger.Module
@@ -76,5 +77,14 @@ object AppModule {
     @Singleton
     fun provideLoginRepository(apiService: ApiService): LoginRepository {
         return LoginRepository(apiService)
+    }
+
+    /**
+     * ✅ LogoutRepository 주입
+     */
+    @Provides
+    @Singleton
+    fun provideLogoutRepository(apiService: ApiService): LogoutRepository {
+        return LogoutRepository(apiService)
     }
 }

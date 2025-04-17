@@ -32,17 +32,4 @@ class LoginRepository @Inject constructor(
     suspend fun refreshToken(refreshToken: String): LoginData {
         return apiService.refreshAccessTokenAsync(mapOf("refreshToken" to refreshToken))
     }
-
-    /**
-     * 🔓 서버 로그아웃 요청 (refreshToken 폐기)
-     * @return 성공 여부 (true/false)
-     */
-    suspend fun logout(): Boolean {
-        return try {
-            apiService.logout()
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
 }

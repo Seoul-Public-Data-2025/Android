@@ -78,6 +78,9 @@ dependencies {
     implementation (libs.glide)
     annotationProcessor (libs.compiler)
 
+    // ✅ Fragment에서 by viewModels() 사용 가능하게 해줌
+    implementation (libs.androidx.fragment.ktx)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

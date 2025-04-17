@@ -1,7 +1,9 @@
 package com.maumpeace.safeapp.network
 
 import com.maumpeace.safeapp.model.FetchLoginData
+import com.maumpeace.safeapp.model.FetchLogoutData
 import com.maumpeace.safeapp.model.LoginData
+import com.maumpeace.safeapp.model.LogoutData
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -46,5 +48,7 @@ interface ApiService {
      * - 서버에서 refreshToken을 폐기
      */
     @POST("auth/logout/")
-    suspend fun logout()
+    suspend fun logout(
+        @Body fetchLogoutData: FetchLogoutData
+    ): LogoutData
 }

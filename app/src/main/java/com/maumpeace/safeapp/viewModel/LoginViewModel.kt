@@ -67,17 +67,4 @@ class LoginViewModel @Inject constructor(
             }
         }
     }
-
-    /**
-     * 🔓 로그아웃 처리
-     */
-    fun logout(onComplete: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            val success = loginRepository.logout()
-            if (success) {
-                TokenManager.clearAllTokens(GlobalApplication.INSTANCE)
-            }
-            onComplete(success)
-        }
-    }
 }

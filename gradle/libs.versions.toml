@@ -1,6 +1,7 @@
 [versions]
 agp = "8.9.1"
 circleimageview = "3.1.0"
+fragmentKtx = "1.8.6"
 glide = "4.16.0"
 googleMaterial = "1.3.0"
 hiltAndroid = "2.56.1"
@@ -24,6 +25,7 @@ timber = "5.0.1"
 materialVersion = "1.12.0"
 
 [libraries]
+androidx-fragment-ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 chucker-debug = { group = "com.github.chuckerteam.chucker", name = "library", version.ref = "chucker" }
 chucker-release = { group = "com.github.chuckerteam.chucker", name = "library-no-op", version.ref = "chucker" }
 circleimageview = { module = "de.hdodenhof:circleimageview", version.ref = "circleimageview" }
