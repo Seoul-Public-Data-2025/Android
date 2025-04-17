@@ -14,11 +14,13 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.FragmentMapBinding
 import com.maumpeace.safeapp.model.MapMarkerInfoData
+import com.maumpeace.safeapp.network.NaverDirectionsService
 import com.maumpeace.safeapp.util.UserStateData
 import com.maumpeace.safeapp.viewModel.MapMarkerViewModel
 import com.naver.maps.geometry.LatLng
@@ -28,8 +30,11 @@ import com.naver.maps.map.NaverMap
 import com.naver.maps.map.OnMapReadyCallback
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
+import com.naver.maps.map.overlay.PolylineOverlay
 import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * 🗺 MapFragment - 지도 화면
@@ -37,6 +42,8 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MapFragment : Fragment(), OnMapReadyCallback {
 
+    @Inject
+    lateinit var directionsService: NaverDirectionsService
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
     private lateinit var naverMap: NaverMap
@@ -47,6 +54,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private val markerVisibleMap = mutableMapOf(
         "001" to true, "002" to true, "003" to true, "004" to true
     )
+    private var currentPolyline: PolylineOverlay? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -249,6 +257,47 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     }
 
                     markerMap.getOrPut(type) { mutableListOf() }.add(marker)
+
+                    marker.setOnClickListener {
+                        val myLatLng = UserStateData.getMyLatLng()
+                        val start = "${myLatLng.longitude},${myLatLng.latitude}"
+                        val goal = "$lot,$lat" // 경도, 위도 순서
+
+                        lifecycleScope.launch {
+                            try {
+                                val response = directionsService.getRoutePath(
+                                    start = start,
+                                    goal = goal,
+                                    clientId = "6zm16zmxr2",
+                                    clientSecret = "4QG3QWQ0oRE9tk01Ym10XrRz4Vi8vHGT5hlTPKUF"
+                                )
+
+                                val path = response.route.traoptimal.first().path
+                                val coords = path.map { LatLng(it[1], it[0]) } // 위도, 경도 순서로
+
+                                // 기존 경로 제거
+                                currentPolyline?.map = null
+
+                                currentPolyline = PolylineOverlay().apply {
+                                    this.coords = coords
+                                    color = resources.getColor(R.color.teal_700, null)
+                                    width = 10
+                                    map = naverMap
+                                }
+
+                                // 카메라 줌 설정
+                                val bounds = com.naver.maps.geometry.LatLngBounds.Builder()
+                                coords.forEach { bounds.include(it) }
+                                naverMap.moveCamera(CameraUpdate.fitBounds(bounds.build(), 100))
+
+                            } catch (e: Exception) {
+                                Toast.makeText(requireContext(), "길찾기 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        true
+                    }
+
                 }
             }
 

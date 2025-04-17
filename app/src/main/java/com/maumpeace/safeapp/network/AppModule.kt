@@ -10,6 +10,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -86,5 +87,15 @@ object AppModule {
     @Singleton
     fun provideLogoutRepository(apiService: ApiService): LogoutRepository {
         return LogoutRepository(apiService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNaverDirectionsService(): NaverDirectionsService {
+        return Retrofit.Builder()
+            .baseUrl("https://naveropenapi.apigw.ntruss.com/") // 꼭 '/' 포함
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(NaverDirectionsService::class.java)
     }
 }
