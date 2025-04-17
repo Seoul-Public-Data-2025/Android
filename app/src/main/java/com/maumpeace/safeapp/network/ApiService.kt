@@ -57,6 +57,6 @@ interface ApiService {
     /**
      * 🗺️ 지도 마커 요청
      */
-    @GET("auth/logout/")
+    @GET("display-icon/")
     suspend fun mapMarker(): MapMarkerData
 }

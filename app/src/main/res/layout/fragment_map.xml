@@ -251,6 +251,18 @@
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
+    <ProgressBar
+        android:id="@+id/progress_loading"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- 🗺 지도 및 본문 컨테이너 -->
     <FrameLayout
         android:id="@+id/map_container"

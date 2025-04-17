@@ -37,6 +37,7 @@ import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
+import kotlin.random.Random
 
 /**
  * 🗺 MapFragment - 지도 화면
@@ -62,11 +63,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val bottomSheet = binding.mapBottomSheet
-        val behavior = BottomSheetBehavior.from(bottomSheet)
-
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        behavior.peekHeight = 480
+        setupBottomSheet()
 
         toggleBottomSheet()
 
@@ -189,7 +186,32 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-    fun mapMarker(){
+//    @SuppressLint("DefaultLocale")
+//    private fun addRandomMarkers() {
+//        val randomMarkers = mutableListOf<MapMarkerInfoData>()
+//        val baseLat = 37.5665  // 서울 중심 좌표
+//        val baseLot = 126.9780
+//
+//        repeat(50) {
+//            val randomLat = baseLat + Random.nextDouble(-0.03, 0.03)
+//            val randomLot = baseLot + Random.nextDouble(-0.03, 0.03)
+//            val type = listOf("001", "002", "003", "004").random()
+//
+//            randomMarkers.add(
+//                MapMarkerInfoData(
+//                    type,
+//                    String.format("%.6f", randomLat),
+//                    String.format("%.6f", randomLot),
+//                    "랜덤 주소 $it",
+//                    "마커 $it"
+//                )
+//            )
+//        }
+//
+//        showMarkers(randomMarkers)
+//    }
+
+    private fun mapMarker(){
         mapMarkerViewModel.mapMarker()
         mapMarkerViewModel.mapMarkerData.observe(viewLifecycleOwner) { mapMarkerData ->
             mapMarkerData?.let {
@@ -205,20 +227,38 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun showMarkers(markerList: List<MapMarkerInfoData>) {
-        for (markerData in markerList) {
-            val lat = markerData.lat?.toDoubleOrNull()
-            val lot = markerData.lot?.toDoubleOrNull()
-            val type = markerData.type
+        binding.progressLoading.visibility = View.VISIBLE
 
-            if (lat != null && lot != null && type != null) {
-                Marker().apply {
-                    position = LatLng(lat, lot)
-                    icon = OverlayImage.fromResource(getMarkerIconRes(type))
-                    captionText = markerData.name ?: ""
-                    map = naverMap
+        Handler(Looper.getMainLooper()).postDelayed({
+            for (markerData in markerList) {
+                val lat = markerData.lat?.toDoubleOrNull()
+                val lot = markerData.lot?.toDoubleOrNull()
+                val type = markerData.type
+
+                if (lat != null && lot != null && type != null) {
+                    Marker().apply {
+                        position = LatLng(lat, lot)
+                        icon = OverlayImage.fromResource(getMarkerIconRes(type))
+                        if (markerData.name != null) {
+                            captionText = markerData.name.split(" ").last()
+                        }
+                        width = 88
+                        height = 88
+                        map = naverMap
+                    }
                 }
             }
-        }
+            binding.progressLoading.visibility = View.GONE
+        }, 500) // 살짝 지연시켜 자연스럽게 로딩 효과 부여
+    }
+
+    private fun setupBottomSheet() {
+        val behavior = BottomSheetBehavior.from(binding.mapBottomSheet)
+        val screenHeight = resources.displayMetrics.heightPixels
+        val calculatedPeekHeight = (screenHeight * 0.25).toInt() // 기존 0.35 → 0.25 로 낮춤
+        behavior.peekHeight = calculatedPeekHeight
+
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
     private fun getMarkerIconRes(type: String): Int {
@@ -240,6 +280,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         naverMap.lightness = 0.0f
         naverMap.maxZoom = 19.0
         naverMap.minZoom = 13.0
+
+        mapMarker()
     }
 
     override fun onStart() {
