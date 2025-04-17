@@ -20,7 +20,9 @@ import androidx.fragment.app.viewModels
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.kakao.sdk.user.UserApiClient
+import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.FragmentMapBinding
+import com.maumpeace.safeapp.model.MapMarkerInfoData
 import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.UserStateData
 import com.maumpeace.safeapp.viewModel.LogoutViewModel
@@ -30,6 +32,8 @@ import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.OnMapReadyCallback
+import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -188,15 +192,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     fun mapMarker(){
         mapMarkerViewModel.mapMarker()
         mapMarkerViewModel.mapMarkerData.observe(viewLifecycleOwner) { mapMarkerData ->
-            // 로그인 성공 처리
             mapMarkerData?.let {
-                UserApiClient.instance.logout { error ->
-                    if (error != null) {
-                        Timber.tag("마커 로드 실패: ").e(error.localizedMessage)
-                    } else {
-                        //마커 생성
-                    }
-                }
+                showMarkers(mapMarkerData.result)
             }
         }
 
@@ -204,6 +201,33 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             error?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun showMarkers(markerList: List<MapMarkerInfoData>) {
+        for (markerData in markerList) {
+            val lat = markerData.lat?.toDoubleOrNull()
+            val lot = markerData.lot?.toDoubleOrNull()
+            val type = markerData.type
+
+            if (lat != null && lot != null && type != null) {
+                Marker().apply {
+                    position = LatLng(lat, lot)
+                    icon = OverlayImage.fromResource(getMarkerIconRes(type))
+                    captionText = markerData.name ?: ""
+                    map = naverMap
+                }
+            }
+        }
+    }
+
+    private fun getMarkerIconRes(type: String): Int {
+        return when (type) {
+            "001" -> R.drawable.ic_police
+            "002" -> R.drawable.ic_cctv
+            "003" -> R.drawable.ic_safety_light
+            "004" -> R.drawable.ic_safety_facility
+            else -> R.drawable.ic_red_caution // 기본값
         }
     }
 
