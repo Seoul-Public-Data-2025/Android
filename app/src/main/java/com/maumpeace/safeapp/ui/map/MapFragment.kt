@@ -216,7 +216,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
 
         // 아이콘 변경
-        val newIcon = if (!isVisible) getMarkerIconRes(type) else R.drawable.ic_default_profile
+        val newIcon = if (!isVisible) getMarkerIconRes(type) else {
+            when (type) {
+                "001" -> R.drawable.ic_off_police
+                "002" -> R.drawable.ic_off_cctv
+                "003" -> R.drawable.ic_off_safety_light
+                else -> R.drawable.ic_off_safety_facility
+            }
+        }
         iconView.setImageResource(newIcon)
     }
 
