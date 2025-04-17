@@ -2,30 +2,24 @@ package com.maumpeace.safeapp.ui.map
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.FragmentMapBinding
 import com.maumpeace.safeapp.model.MapMarkerInfoData
-import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.UserStateData
-import com.maumpeace.safeapp.viewModel.LogoutViewModel
 import com.maumpeace.safeapp.viewModel.MapMarkerViewModel
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
@@ -36,8 +30,6 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
-import kotlin.random.Random
 
 /**
  * 🗺 MapFragment - 지도 화면
@@ -51,6 +43,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationSource: FusedLocationSource
     private var locationBtnIsClickable: Boolean = true
     private val mapMarkerViewModel: MapMarkerViewModel by viewModels()
+    private val markerMap = mutableMapOf<String, MutableList<Marker>>() // type -> marker list
+    private val markerVisibleMap = mutableMapOf(
+        "001" to true, "002" to true, "003" to true, "004" to true
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -70,6 +66,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         locationSource = FusedLocationSource(this, 1000)
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
+
+        binding.llPolice.setOnClickListener { toggleMarker("001", binding.ivPolice) }
+        binding.llCctv.setOnClickListener { toggleMarker("002", binding.ivCctv) }
+        binding.llSafetyLight.setOnClickListener { toggleMarker("003", binding.ivSafetyLight) }
+        binding.llSafetyFacility.setOnClickListener {
+            toggleMarker(
+                "004", binding.ivSafetyFacility
+            )
+        }
     }
 
     @Deprecated("Deprecated in Java")
@@ -186,32 +191,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-//    @SuppressLint("DefaultLocale")
-//    private fun addRandomMarkers() {
-//        val randomMarkers = mutableListOf<MapMarkerInfoData>()
-//        val baseLat = 37.5665  // 서울 중심 좌표
-//        val baseLot = 126.9780
-//
-//        repeat(50) {
-//            val randomLat = baseLat + Random.nextDouble(-0.03, 0.03)
-//            val randomLot = baseLot + Random.nextDouble(-0.03, 0.03)
-//            val type = listOf("001", "002", "003", "004").random()
-//
-//            randomMarkers.add(
-//                MapMarkerInfoData(
-//                    type,
-//                    String.format("%.6f", randomLat),
-//                    String.format("%.6f", randomLot),
-//                    "랜덤 주소 $it",
-//                    "마커 $it"
-//                )
-//            )
-//        }
-//
-//        showMarkers(randomMarkers)
-//    }
-
-    private fun mapMarker(){
+    private fun mapMarker() {
         mapMarkerViewModel.mapMarker()
         mapMarkerViewModel.mapMarkerData.observe(viewLifecycleOwner) { mapMarkerData ->
             mapMarkerData?.let {
@@ -226,31 +206,49 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun toggleMarker(type: String, iconView: ImageView) {
+        val isVisible = markerVisibleMap[type] ?: true
+        markerVisibleMap[type] = !isVisible
+
+        // 마커 on/off
+        markerMap[type]?.forEach { marker ->
+            marker.map = if (!isVisible) naverMap else null
+        }
+
+        // 아이콘 변경
+        val newIcon = if (!isVisible) getMarkerIconRes(type) else R.drawable.ic_default_profile
+        iconView.setImageResource(newIcon)
+    }
+
+
     private fun showMarkers(markerList: List<MapMarkerInfoData>) {
         binding.progressLoading.visibility = View.VISIBLE
-
         Handler(Looper.getMainLooper()).postDelayed({
+            markerMap.clear()
+
             for (markerData in markerList) {
                 val lat = markerData.lat?.toDoubleOrNull()
                 val lot = markerData.lot?.toDoubleOrNull()
-                val type = markerData.type
+                val type = markerData.type ?: continue
 
-                if (lat != null && lot != null && type != null) {
-                    Marker().apply {
+                if (lat != null && lot != null) {
+                    val marker = Marker().apply {
                         position = LatLng(lat, lot)
                         icon = OverlayImage.fromResource(getMarkerIconRes(type))
-                        if (markerData.name != null) {
-                            captionText = markerData.name.split(" ").last()
-                        }
+                        captionText = markerData.name?.split(" ")?.last() ?: ""
                         width = 88
                         height = 88
-                        map = naverMap
+                        map = if (markerVisibleMap[type] == true) naverMap else null
                     }
+
+                    markerMap.getOrPut(type) { mutableListOf() }.add(marker)
                 }
             }
+
             binding.progressLoading.visibility = View.GONE
-        }, 500) // 살짝 지연시켜 자연스럽게 로딩 효과 부여
+        }, 500)
     }
+
 
     private fun setupBottomSheet() {
         val behavior = BottomSheetBehavior.from(binding.mapBottomSheet)

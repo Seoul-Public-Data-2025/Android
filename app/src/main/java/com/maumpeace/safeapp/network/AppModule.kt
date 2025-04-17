@@ -18,7 +18,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val BASE_URL = "http://43.200.182.178:8000/api/"
+    private const val BASE_URL = "http://43.200.182.178/api/"
 
     /**
      * ✅ AccessToken을 헤더에 자동 추가하는 Interceptor

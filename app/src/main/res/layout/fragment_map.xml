@@ -76,6 +76,7 @@
                     tools:ignore="UseCompoundDrawables">
 
                     <ImageView
+                        android:id="@+id/iv_police"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
@@ -103,6 +104,7 @@
                     tools:ignore="UseCompoundDrawables">
 
                     <ImageView
+                        android:id="@+id/iv_cctv"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
@@ -130,6 +132,7 @@
                     tools:ignore="UseCompoundDrawables">
 
                     <ImageView
+                        android:id="@+id/iv_safety_light"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"
@@ -157,6 +160,7 @@
                     tools:ignore="UseCompoundDrawables">
 
                     <ImageView
+                        android:id="@+id/iv_safety_facility"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:contentDescription="@string/iv"

@@ -26,7 +26,7 @@ class TokenAuthenticator(
         if (responseCount(response) >= 2) return null
 
         // Retrofit 인스턴스 구성 (직접 생성, DI 사용 안함)
-        val retrofit = Retrofit.Builder().baseUrl("http://43.200.182.178:8000/api/")
+        val retrofit = Retrofit.Builder().baseUrl("http://43.200.182.178/api/")
             .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(ApiService::class.java)
