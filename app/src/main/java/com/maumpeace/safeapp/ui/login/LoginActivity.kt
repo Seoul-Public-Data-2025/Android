@@ -112,8 +112,8 @@ class LoginActivity : AppCompatActivity() {
                 enableLoginButton()
             } else {
                 val email = user.kakaoAccount?.email.toString()
-                val profile = user.kakaoAccount?.profile.toString()
-                val nickname = user.kakaoAccount?.profileNicknameNeedsAgreement.toString()
+                val profile = user.kakaoAccount?.profile?.profileImageUrl.toString()
+                val nickname = user.kakaoAccount?.profile?.nickname.toString()
 
 
                 loginViewModel.loginWithKakao(profile, nickname, email, kakaoAccessToken)

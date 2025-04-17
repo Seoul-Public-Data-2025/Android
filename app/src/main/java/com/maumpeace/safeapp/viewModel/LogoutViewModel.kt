@@ -40,6 +40,7 @@ class LogoutViewModel @Inject constructor(
 
                 if (result.success) {
                     TokenManager.clearAllTokens(GlobalApplication.INSTANCE)
+                    _logoutData.postValue(result)
                 } else {
                     _errorMessage.postValue("로그아웃 실패: 서버 응답 실패")
                 }
