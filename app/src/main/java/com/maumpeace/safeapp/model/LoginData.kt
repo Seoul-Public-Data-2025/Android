@@ -15,8 +15,7 @@ import com.google.gson.annotations.SerializedName
  * }
  */
 data class LoginData(
-    val success: Boolean,
-    val result: LoginInfoData
+    val success: Boolean, val result: LoginInfoData
 )
 
 /**
@@ -25,11 +24,9 @@ data class LoginData(
  * - refreshToken: accessToken 만료 시 재발급에 사용하는 토큰
  */
 data class LoginInfoData(
-    @SerializedName("accessToken")
-    val accessToken: String?,
+    @SerializedName("accessToken") val accessToken: String?,
 
-    @SerializedName("refreshToken")
-    val refreshToken: String?
+    @SerializedName("refreshToken") val refreshToken: String?
 )
 
 /**
@@ -38,6 +35,5 @@ data class LoginInfoData(
  * - accessToken: 카카오 로그인 accessToken
  */
 data class FetchLoginData(
-    val email: String?,
-    val accessToken: String?
+    val email: String?, val accessToken: String?
 )

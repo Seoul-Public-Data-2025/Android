@@ -2,30 +2,42 @@ package com.maumpeace.safeapp.ui.map
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.databinding.FragmentMapBinding
+import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.UserStateData
+import com.maumpeace.safeapp.viewModel.LogoutViewModel
+import com.maumpeace.safeapp.viewModel.MapMarkerViewModel
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.OnMapReadyCallback
 import com.naver.maps.map.util.FusedLocationSource
+import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * 🗺 MapFragment - 지도 화면
  */
+@AndroidEntryPoint
 class MapFragment : Fragment(), OnMapReadyCallback {
 
     private var _binding: FragmentMapBinding? = null
@@ -33,6 +45,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var naverMap: NaverMap
     private lateinit var locationSource: FusedLocationSource
     private var locationBtnIsClickable: Boolean = true
+    private val mapMarkerViewModel: MapMarkerViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -169,6 +182,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 }, 1000)    //1초에 한 번씩 버튼 예외처리
             }
             // TODO: 실제 안내 로직 호출
+        }
+    }
+
+    fun mapMarker(){
+        mapMarkerViewModel.mapMarker()
+        mapMarkerViewModel.mapMarkerData.observe(viewLifecycleOwner) { mapMarkerData ->
+            // 로그인 성공 처리
+            mapMarkerData?.let {
+                UserApiClient.instance.logout { error ->
+                    if (error != null) {
+                        Timber.tag("마커 로드 실패: ").e(error.localizedMessage)
+                    } else {
+                        //마커 생성
+                    }
+                }
+            }
+        }
+
+        mapMarkerViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

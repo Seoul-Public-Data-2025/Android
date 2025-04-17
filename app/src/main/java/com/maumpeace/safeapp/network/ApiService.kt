@@ -4,8 +4,10 @@ import com.maumpeace.safeapp.model.FetchLoginData
 import com.maumpeace.safeapp.model.FetchLogoutData
 import com.maumpeace.safeapp.model.LoginData
 import com.maumpeace.safeapp.model.LogoutData
+import com.maumpeace.safeapp.model.MapMarkerData
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 /**
@@ -51,4 +53,10 @@ interface ApiService {
     suspend fun logout(
         @Body fetchLogoutData: FetchLogoutData
     ): LogoutData
+
+    /**
+     * 🗺️ 지도 마커 요청
+     */
+    @GET("auth/logout/")
+    suspend fun mapMarker(): MapMarkerData
 }
