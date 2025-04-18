@@ -160,6 +160,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         LocationServices.getFusedLocationProviderClient(requireContext()).lastLocation.addOnSuccessListener { location ->
             if (location != null) {
                 UserStateData.setMyLatLng(LatLng(location))
+                naverMap.locationOverlay.icon =
+                    OverlayImage.fromResource(R.drawable.ic_default_user_marker)
                 naverMap.locationOverlay.isVisible = true
                 naverMap.locationOverlay.position = LatLng(
                     UserStateData.getMyLatLng().latitude, UserStateData.getMyLatLng().longitude
@@ -210,16 +212,26 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun setMarkerVisible(type: String, iconView: ImageView, shouldShow: Boolean) {
+        markerVisibleMap[type] = shouldShow
+        markerMap[type]?.forEach { marker ->
+            marker.map = if (shouldShow) naverMap else null
+        }
+
+        val newIcon = if (shouldShow) getMarkerIconRes(type) else getOffMarkerIconRes(type)
+        iconView.setImageResource(newIcon)
+    }
+
     private fun startGuidance() {
         Toast.makeText(requireContext(), "안심 경로 안내를 시작합니다.", Toast.LENGTH_SHORT).show()
         val currentLocation = UserStateData.getMyLatLng()
         var closestMarker: Marker? = null
         var minDistance = Double.MAX_VALUE
 
-        toggleMarker("001", binding.ivPolice)
-        toggleMarker("002", binding.ivCctv)
-        toggleMarker("003", binding.ivSafetyLight)
-        toggleMarker("004", binding.ivSafetyFacility)
+        setMarkerVisible("001", binding.ivPolice, true)
+        setMarkerVisible("002", binding.ivCctv, true)
+        setMarkerVisible("003", binding.ivSafetyLight, true)
+        setMarkerVisible("004", binding.ivSafetyFacility, true)
 
         // "001" (경찰서) + "004" (안심지킴이집) 마커만 필터링
         val targetMarkers = (markerMap["001"] ?: emptyList()) + (markerMap["004"] ?: emptyList())
@@ -325,6 +337,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun stopGuidance() {
+
+        setMarkerVisible("001", binding.ivPolice, true)
+        setMarkerVisible("002", binding.ivCctv, true)
+        setMarkerVisible("003", binding.ivSafetyLight, true)
+        setMarkerVisible("004", binding.ivSafetyFacility, true)
+
         // 경로 제거
         currentPolyline?.map = null
 
