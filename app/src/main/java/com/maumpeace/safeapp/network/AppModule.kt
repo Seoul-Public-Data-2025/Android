@@ -93,7 +93,7 @@ object AppModule {
     @Singleton
     fun provideNaverDirectionsService(): NaverDirectionsService {
         return Retrofit.Builder()
-            .baseUrl("https://naveropenapi.apigw.ntruss.com/") // 꼭 '/' 포함
+            .baseUrl("https://maps.apigw.ntruss.com/map-direction/") // 꼭 '/' 포함
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(NaverDirectionsService::class.java)

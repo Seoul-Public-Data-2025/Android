@@ -21,19 +21,22 @@ import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.FragmentMapBinding
 import com.maumpeace.safeapp.model.MapMarkerInfoData
 import com.maumpeace.safeapp.network.NaverDirectionsService
+import com.maumpeace.safeapp.util.HttpErrorHandler
 import com.maumpeace.safeapp.util.UserStateData
 import com.maumpeace.safeapp.viewModel.MapMarkerViewModel
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.OnMapReadyCallback
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
-import com.naver.maps.map.overlay.PolylineOverlay
+import com.naver.maps.map.overlay.PathOverlay
 import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 /**
@@ -54,7 +57,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private val markerVisibleMap = mutableMapOf(
         "001" to true, "002" to true, "003" to true, "004" to true
     )
-    private var currentPolyline: PolylineOverlay? = null
+    private var currentPolyline: PathOverlay? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -273,25 +276,58 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                                 )
 
                                 val path = response.route.traoptimal.first().path
-                                val coords = path.map { LatLng(it[1], it[0]) } // 위도, 경도 순서로
+                                val coords = path.map { LatLng(it[1], it[0]) } // 위도, 경도 순서
 
                                 // 기존 경로 제거
                                 currentPolyline?.map = null
 
-                                currentPolyline = PolylineOverlay().apply {
+                                // PathOverlay 생성
+                                val pathOverlay = PathOverlay().apply {
                                     this.coords = coords
-                                    color = resources.getColor(R.color.teal_700, null)
-                                    width = 10
+                                    color = resources.getColor(
+                                        android.R.color.transparent, null
+                                    ) // 지나가지 않은 길
+                                    passedColor =
+                                        resources.getColor(R.color.red_f55b63, null) // 지나간 길
+                                    outlineWidth = 5
+                                    width = 15
+                                    progress = 0.0
                                     map = naverMap
                                 }
 
-                                // 카메라 줌 설정
-                                val bounds = com.naver.maps.geometry.LatLngBounds.Builder()
-                                coords.forEach { bounds.include(it) }
-                                naverMap.moveCamera(CameraUpdate.fitBounds(bounds.build(), 100))
+                                currentPolyline = pathOverlay
 
+                                // 애니메이션 진행
+                                var time = 0.0
+                                val timer = kotlin.concurrent.timer(period = 25) {
+                                    if (time <= 1.0) {
+                                        time += 0.01
+                                    } else {
+                                        cancel()
+                                    }
+
+                                    Handler(Looper.getMainLooper()).post {
+                                        pathOverlay.progress = time
+                                    }
+                                }
+
+                                // 카메라 이동
+                                val myLocation = UserStateData.getMyLatLng()
+                                val cameraUpdate = CameraUpdate.scrollTo(myLocation)
+                                    .animate(CameraAnimation.Fly, 2500)
+                                naverMap.moveCamera(cameraUpdate)
+
+                            } catch (e: HttpException) {
+                                val message = HttpErrorHandler.parseErrorMessage(e)
+                                Toast.makeText(
+                                    requireContext(), "길찾기 실패: $message", Toast.LENGTH_SHORT
+                                ).show()
                             } catch (e: Exception) {
-                                Toast.makeText(requireContext(), "길찾기 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "길찾기 실패: ${e.localizedMessage}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
 

@@ -1,7 +1,9 @@
 package com.maumpeace.safeapp.network
 
 import android.content.Context
+import android.content.Intent
 import com.maumpeace.safeapp.model.LoginData
+import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.TokenManager
 import okhttp3.Authenticator
 import okhttp3.Request
@@ -50,11 +52,20 @@ class TokenAuthenticator(
                 // 원래 요청 재시도 (accessToken만 교체)
                 response.request.newBuilder().header("Authorization", "Bearer $accessToken").build()
             } else {
+                redirectToLogin()
                 null // refreshToken도 만료되었거나 오류
             }
         } catch (e: IOException) {
+            redirectToLogin()
             null
         }
+    }
+
+    private fun redirectToLogin() {
+        val intent = Intent(context, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        context.startActivity(intent)
     }
 
     /**
