@@ -2,6 +2,7 @@ package com.maumpeace.safeapp.ui.settings
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.TokenManager
 import com.maumpeace.safeapp.viewModel.LogoutViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * ⚙️ SettingsFragment - 설정 화면
@@ -85,7 +87,8 @@ class SettingsFragment : Fragment() {
 
         logoutViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                Timber.tag("error: ").e(it)
+//                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
             }
         }
     }

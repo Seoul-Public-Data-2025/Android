@@ -37,6 +37,7 @@ import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -355,7 +356,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         mapMarkerViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
             error?.let {
-                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                Timber.tag("error: ").e(it)
+//                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
             }
         }
     }

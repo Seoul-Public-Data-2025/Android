@@ -15,6 +15,7 @@ import com.maumpeace.safeapp.databinding.ActivityLoginBinding
 import com.maumpeace.safeapp.ui.main.MainActivity
 import com.maumpeace.safeapp.viewModel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * ✅ LoginActivity
@@ -64,7 +65,8 @@ class LoginActivity : AppCompatActivity() {
 
         loginViewModel.errorMessage.observe(this) { error ->
             error?.let {
-                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+                Timber.tag("error: ").e(it)
+//                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
                 enableLoginButton() // 에러 나도 버튼 다시 활성화
             }
         }
