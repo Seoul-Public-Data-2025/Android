@@ -53,11 +53,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var locationSource: FusedLocationSource
     private var locationBtnIsClickable: Boolean = true
     private val mapMarkerViewModel: MapMarkerViewModel by viewModels()
-    private val markerMap = mutableMapOf<String, MutableList<Marker>>() // type -> marker list
+    private val markerMap = mutableMapOf<String, MutableList<Marker>>()
     private val markerVisibleMap = mutableMapOf(
         "001" to true, "002" to true, "003" to true, "004" to true
     )
     private var currentPolyline: PathOverlay? = null
+    private var selectedMarker: Marker? = null
+    private var selectedMarkerType: String? = null
+    private var isGuiding = false
+    private var guidingEndMarker: Marker? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -66,14 +70,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return binding.root
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         setupBottomSheet()
-
         toggleBottomSheet()
 
+        binding.textEmergencyMessage.text = "근처 안심경로로\n안내를 시작할까요?"
+        binding.btnEmergencyConfirm.text = "안내 시작"
         locationSource = FusedLocationSource(this, 1000)
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync(this)
@@ -82,9 +87,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.llCctv.setOnClickListener { toggleMarker("002", binding.ivCctv) }
         binding.llSafetyLight.setOnClickListener { toggleMarker("003", binding.ivSafetyLight) }
         binding.llSafetyFacility.setOnClickListener {
-            toggleMarker(
-                "004", binding.ivSafetyFacility
-            )
+            toggleMarker("004", binding.ivSafetyFacility)
         }
     }
 
@@ -172,8 +175,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     fun triggerSafetyFeature() {
         val overlay = binding.emergencyOverlay
+        val textEmergencyMessage = binding.textEmergencyMessage
         val btnCancel = binding.btnEmergencyCancel
         val btnConfirm = binding.btnEmergencyConfirm
         val ivMyLocation = binding.ivMyLocation
@@ -189,18 +194,156 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         btnConfirm.setOnClickListener {
             ivMyLocation.visibility = View.VISIBLE
             overlay.visibility = View.GONE
-            Toast.makeText(requireContext(), "안심 경로 안내를 시작합니다.", Toast.LENGTH_SHORT).show()
-            if (locationBtnIsClickable) {
-                locationBtnIsClickable = false
-                naverMap.locationOverlay.isVisible = true
-                naverMapMoveCamera(naverMap)
-                Handler(Looper.getMainLooper()).postDelayed({
-                    locationBtnIsClickable = true
-                }, 1000)    //1초에 한 번씩 버튼 예외처리
+            if (!isGuiding) {
+                textEmergencyMessage.text = "안심경로 안내를 취소할까요?"
+                btnConfirm.text = "안내 취소"
+                isGuiding = true
+                startGuidance() // 현재 구현된 길찾기 실행 코드
+            } else {
+                // 안내 종료
+                textEmergencyMessage.text = "근처 안심경로로\n안내를 시작할까요?"
+                btnConfirm.text = "안내 시작"
+                isGuiding = false
+                stopGuidance() // 아래에 새로 정의
             }
-            // TODO: 실제 안내 로직 호출
         }
     }
+
+    private fun startGuidance() {
+        Toast.makeText(requireContext(), "안심 경로 안내를 시작합니다.", Toast.LENGTH_SHORT).show()
+        val currentLocation = UserStateData.getMyLatLng()
+        var closestMarker: Marker? = null
+        var minDistance = Double.MAX_VALUE
+
+        toggleMarker("001", binding.ivPolice)
+        toggleMarker("002", binding.ivCctv)
+        toggleMarker("003", binding.ivSafetyLight)
+        toggleMarker("004", binding.ivSafetyFacility)
+
+        // "001" (경찰서) + "004" (안심지킴이집) 마커만 필터링
+        val targetMarkers = (markerMap["001"] ?: emptyList()) + (markerMap["004"] ?: emptyList())
+
+        for (marker in targetMarkers) {
+            val distance = currentLocation.distanceTo(marker.position)
+            if (distance < minDistance) {
+                minDistance = distance
+                closestMarker = marker
+            }
+        }
+
+        if (closestMarker != null) {
+            val start = "${currentLocation.longitude},${currentLocation.latitude}"
+            val goal = "${closestMarker.position.longitude},${closestMarker.position.latitude}"
+
+            lifecycleScope.launch {
+                try {
+                    val response = directionsService.getRoutePath(
+                        start = start,
+                        goal = goal,
+                        clientId = "6zm16zmxr2",
+                        clientSecret = "4QG3QWQ0oRE9tk01Ym10XrRz4Vi8vHGT5hlTPKUF"
+                    )
+
+                    val path = response.route.traoptimal.first().path
+                    val coords = path.map { LatLng(it[1], it[0]) }
+
+                    // 기존 경로 제거
+                    currentPolyline?.map = null
+
+                    val pathOverlay = PathOverlay().apply {
+                        this.coords = coords
+                        color = resources.getColor(android.R.color.transparent, null)
+                        passedColor = resources.getColor(R.color.red_f55b63, null)
+                        outlineWidth = 5
+                        width = 15
+                        progress = 0.0
+                        map = naverMap
+                    }
+                    currentPolyline = pathOverlay
+
+                    // 애니메이션 진행
+                    var time = 0.0
+                    val timer = kotlin.concurrent.timer(period = 25) {
+                        if (time <= 1.0) {
+                            time += 0.01
+                        } else {
+                            cancel()
+                        }
+
+                        Handler(Looper.getMainLooper()).post {
+                            pathOverlay.progress = time
+                        }
+                    }
+
+                    // 카메라 이동: 내 위치 기준
+                    val cameraUpdate =
+                        CameraUpdate.scrollTo(currentLocation).animate(CameraAnimation.Fly, 2500)
+                    naverMap.moveCamera(cameraUpdate)
+
+                } catch (e: HttpException) {
+                    val message = HttpErrorHandler.parseErrorMessage(e)
+                    Toast.makeText(requireContext(), "경로 안내 실패: $message", Toast.LENGTH_SHORT)
+                        .show()
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        requireContext(), "경로 안내 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            // 모든 마커 비활성화
+            for ((type, markers) in markerMap) {
+                markers.forEach { marker ->
+                    val isEndMarker = marker == closestMarker
+                    marker.icon = if (isEndMarker) {
+                        marker.width = 88 * 3
+                        marker.height = 88 * 3
+                        marker.map = null
+                        marker.map = naverMap
+                        OverlayImage.fromResource(getSelectedMarkerIconRes(type))
+                    } else {
+                        marker.width = 88
+                        marker.height = 88
+                        marker.map = null
+                        marker.map = naverMap
+                        OverlayImage.fromResource(
+                            when (type) {
+                                "001" -> R.drawable.ic_off_police
+                                "002" -> R.drawable.ic_off_cctv
+                                "003" -> R.drawable.ic_off_safety_light
+                                else -> R.drawable.ic_off_safety_facility
+                            }
+                        )
+                    }
+                }
+            }
+
+        } else {
+            Toast.makeText(requireContext(), "근처에 안전 목적지 마커가 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun stopGuidance() {
+        // 경로 제거
+        currentPolyline?.map = null
+
+        // 마커 초기화
+        for ((type, markers) in markerMap) {
+            for (marker in markers) {
+                marker.icon = OverlayImage.fromResource(getMarkerIconRes(type))
+                marker.width = 88
+                marker.height = 88
+                marker.map = null
+                marker.map = naverMap
+            }
+        }
+
+        // 선택된 마커 초기화
+        selectedMarker = null
+        selectedMarkerType = null
+        guidingEndMarker = null
+    }
+
 
     private fun mapMarker() {
         mapMarkerViewModel.mapMarker()
@@ -262,83 +405,55 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     markerMap.getOrPut(type) { mutableListOf() }.add(marker)
 
                     marker.setOnClickListener {
-                        val myLatLng = UserStateData.getMyLatLng()
-                        val start = "${myLatLng.longitude},${myLatLng.latitude}"
-                        val goal = "$lot,$lat" // 경도, 위도 순서
-
-                        lifecycleScope.launch {
-                            try {
-                                val response = directionsService.getRoutePath(
-                                    start = start,
-                                    goal = goal,
-                                    clientId = "6zm16zmxr2",
-                                    clientSecret = "4QG3QWQ0oRE9tk01Ym10XrRz4Vi8vHGT5hlTPKUF"
+                        // 이전 마커 원복
+                        selectedMarker?.let { prev ->
+                            val prevType = selectedMarkerType
+                            prev.icon = OverlayImage.fromResource(
+                                if (isGuiding && prev != guidingEndMarker) getOffMarkerIconRes(
+                                    prevType ?: ""
                                 )
-
-                                val path = response.route.traoptimal.first().path
-                                val coords = path.map { LatLng(it[1], it[0]) } // 위도, 경도 순서
-
-                                // 기존 경로 제거
-                                currentPolyline?.map = null
-
-                                // PathOverlay 생성
-                                val pathOverlay = PathOverlay().apply {
-                                    this.coords = coords
-                                    color = resources.getColor(
-                                        android.R.color.transparent, null
-                                    ) // 지나가지 않은 길
-                                    passedColor =
-                                        resources.getColor(R.color.red_f55b63, null) // 지나간 길
-                                    outlineWidth = 5
-                                    width = 15
-                                    progress = 0.0
-                                    map = naverMap
-                                }
-
-                                currentPolyline = pathOverlay
-
-                                // 애니메이션 진행
-                                var time = 0.0
-                                val timer = kotlin.concurrent.timer(period = 25) {
-                                    if (time <= 1.0) {
-                                        time += 0.01
-                                    } else {
-                                        cancel()
-                                    }
-
-                                    Handler(Looper.getMainLooper()).post {
-                                        pathOverlay.progress = time
-                                    }
-                                }
-
-                                // 카메라 이동
-                                val myLocation = UserStateData.getMyLatLng()
-                                val cameraUpdate = CameraUpdate.scrollTo(myLocation)
-                                    .animate(CameraAnimation.Fly, 2500)
-                                naverMap.moveCamera(cameraUpdate)
-
-                            } catch (e: HttpException) {
-                                val message = HttpErrorHandler.parseErrorMessage(e)
-                                Toast.makeText(
-                                    requireContext(), "길찾기 실패: $message", Toast.LENGTH_SHORT
-                                ).show()
-                            } catch (e: Exception) {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "길찾기 실패: ${e.localizedMessage}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                                else getMarkerIconRes(prevType ?: "")
+                            )
+                            prev.width = 88
+                            prev.height = 88
+                            prev.map = null
+                            prev.map = naverMap
                         }
 
+                        // 현재 마커 저장 및 강조 표시
+                        selectedMarker = marker
+                        selectedMarkerType = type
+                        marker.icon = OverlayImage.fromResource(getSelectedMarkerIconRes(type))
+                        marker.width = 88 * 3
+                        marker.height = 88 * 3
+                        marker.map = null
+                        marker.map = naverMap
                         true
                     }
-
                 }
             }
 
             binding.progressLoading.visibility = View.GONE
         }, 500)
+    }
+
+    private fun getSelectedMarkerIconRes(type: String?): Int {
+        return when (type) {
+            "001" -> R.drawable.ic_police_destination
+            "002" -> R.drawable.ic_cctv_destination
+            "003" -> R.drawable.ic_safety_light_destination
+            "004" -> R.drawable.ic_safety_facility_destination
+            else -> R.drawable.ic_red_caution
+        }
+    }
+
+    private fun getOffMarkerIconRes(type: String?): Int {
+        return when (type) {
+            "001" -> R.drawable.ic_off_police
+            "002" -> R.drawable.ic_off_cctv
+            "003" -> R.drawable.ic_off_safety_light
+            else -> R.drawable.ic_off_safety_facility
+        }
     }
 
 
@@ -372,6 +487,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         naverMap.minZoom = 13.0
 
         mapMarker()
+
+        binding.llSafetyDirections.setOnClickListener {
+
+        }
     }
 
     override fun onStart() {
