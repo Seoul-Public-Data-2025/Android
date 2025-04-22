@@ -7,14 +7,14 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 
 /**
- * ✅ SafeApp의 모든 REST API 엔드포인트를 정의하는 인터페이스
+ * SafeApp의 모든 REST API 엔드포인트를 정의하는 인터페이스
  * - ViewModel/Repository에서는 suspend 사용
  * - TokenAuthenticator 등에서는 동기 Call 사용
  */
 interface ApiService {
 
     /**
-     * 🔐 카카오 소셜 로그인 요청
+     * 카카오 소셜 로그인 요청
      * @param fetchLoginData 카카오 액세스 토큰 및 이메일
      * @return 서버 JWT 토큰 포함 응답
      */
@@ -24,7 +24,7 @@ interface ApiService {
     ): LoginData
 
     /**
-     * 🔁 accessToken 갱신 (비동기)
+     * accessToken 갱신 (비동기)
      * @param body refreshToken을 담은 맵
      * @return 새 accessToken 포함 LoginData
      */
@@ -34,7 +34,7 @@ interface ApiService {
     ): LoginData
 
     /**
-     * 🔁 accessToken 갱신 (동기)
+     * accessToken 갱신 (동기)
      * TokenAuthenticator에서 사용
      */
     @POST("auth/refresh/")
@@ -43,7 +43,7 @@ interface ApiService {
     ): Call<LoginData>
 
     /**
-     * 🔓 로그아웃 요청
+     * 로그아웃 요청
      * @param fetchLogoutData 사용자 식별 정보
      * @return 로그아웃 처리 결과
      */
@@ -53,7 +53,7 @@ interface ApiService {
     ): LogoutData
 
     /**
-     * 🗺️ 지도 마커 요청
+     * 지도 마커 요청
      * @return 서버에서 받은 마커 데이터
      */
     @GET("display-icon/")
