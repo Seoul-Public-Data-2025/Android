@@ -6,19 +6,24 @@ import com.maumpeace.safeapp.network.ApiService
 import javax.inject.Inject
 
 /**
- * ✅ LoginRepository
- * - API 호출을 담당하는 계층
- * - ViewModel에 순수한 데이터만 전달함
+ * LoginRepository
+ *
+ * 인증 관련 API 호출을 담당하는 계층으로, ViewModel에 비즈니스 로직이 아닌 순수 데이터만 전달합니다.
  */
 class LoginRepository @Inject constructor(
     private val apiService: ApiService
 ) {
 
     /**
-     * 🔐 카카오 소셜 로그인 요청
+     * 카카오 소셜 로그인 요청
+     *
      * @param kakaoAccessToken 카카오 accessToken
-     * @param email 카카오 사용자 이메일
-     * @return 서버에서 발급한 JWT 포함 응답
+     * @param email 사용자 이메일
+     * @param hashedPhoneNumber 해시 처리된 전화번호
+     * @param profile 프로필 이미지 URL
+     * @param nickname 닉네임
+     * @param fcmToken FCM 토큰
+     * @return 서버에서 발급한 JWT가 포함된 응답
      */
     suspend fun loginWithKakao(
         kakaoAccessToken: String,
@@ -28,24 +33,14 @@ class LoginRepository @Inject constructor(
         nickname: String,
         fcmToken: String
     ): LoginData {
-        return apiService.loginWithKakao(
-            FetchLoginData(
-                kakaoAccessToken = kakaoAccessToken,
-                email = email,
-                hashedPhoneNumber = hashedPhoneNumber,
-                profile = profile,
-                nickname = nickname,
-                fcmToken = fcmToken
-            )
+        val request = FetchLoginData(
+            kakaoAccessToken = kakaoAccessToken,
+            email = email,
+            hashedPhoneNumber = hashedPhoneNumber,
+            profile = profile,
+            nickname = nickname,
+            fcmToken = fcmToken
         )
-    }
-
-    /**
-     * 🔁 accessToken 재발급 요청 (refreshToken 사용)
-     * @param refreshToken 저장된 refreshToken
-     * @return 서버에서 새로 발급한 access/refreshToken
-     */
-    suspend fun refreshToken(refreshToken: String): LoginData {
-        return apiService.refreshAccessTokenAsync(mapOf("refreshToken" to refreshToken))
+        return apiService.loginWithKakao(request)
     }
 }
