@@ -196,6 +196,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun checkSmsPermission(): Boolean {
+        return if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.SEND_SMS), 2001)
+            false
+        } else {
+            true
+        }
+    }
+
+    private fun sendSafetySMS(phoneNumber: String, message: String) {
+        if (!checkSmsPermission()) return
+
+        try {
+            val smsManager = android.telephony.SmsManager.getDefault()
+            smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+            Toast.makeText(requireContext(), "안심 메시지 전송 완료", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "메시지 전송 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+            Timber.e(e)
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     fun triggerSafetyFeature() {
         val overlay = binding.emergencyOverlay
@@ -242,6 +264,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun startGuidance() {
         Toast.makeText(requireContext(), "안심 경로 안내를 시작합니다.", Toast.LENGTH_SHORT).show()
+
+        val location = UserStateData.getMyLatLng()
+        val message = "긴급 상황 발생! 현재 위치는 https://maps.google.com/?q=${location.latitude},${location.longitude}"
+        sendSafetySMS("01033628065", message) // 여기에 원하는 연락처 입력
+
         val currentLocation = UserStateData.getMyLatLng()
         var closestMarker: Marker? = null
         var minDistance = Double.MAX_VALUE
@@ -348,7 +375,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     }
                 }
             }
-
         } else {
             Toast.makeText(requireContext(), "근처에 안전 목적지 마커가 없습니다.", Toast.LENGTH_SHORT).show()
         }
