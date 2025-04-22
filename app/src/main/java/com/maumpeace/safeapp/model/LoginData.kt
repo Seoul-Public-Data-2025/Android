@@ -29,11 +29,12 @@ data class LoginInfoData(
     @SerializedName("refreshToken") val refreshToken: String?
 )
 
-/**
- * ✅ 로그인 요청 시 서버에 보낼 데이터
- * - email: 카카오에서 받아온 사용자 이메일
- * - accessToken: 카카오 로그인 accessToken
- */
+/**✅ 로그인 요청 시 서버에 보낼 데이터*/
 data class FetchLoginData(
-    val email: String?, val accessToken: String?
+    val kakaoAccessToken: String?,
+    val email: String?,
+    val hashedPhoneNumber: String?,
+    val profile: String,
+    val nickname: String,
+    val fcmToken: String
 )

@@ -35,13 +35,27 @@ class LoginViewModel @Inject constructor(
     /**
      * 🔐 카카오 로그인 처리
      */
-    fun loginWithKakao(profile: String, nickname: String, email: String, kakaoAccessToken: String) {
+    fun loginWithKakao(
+        kakaoAccessToken: String,
+        email: String,
+        hashedPhoneNumber: String,
+        profile: String,
+        nickname: String,
+        fcmToken: String
+    ) {
         _loginData.value = null
         _errorMessage.value = null
 
         viewModelScope.launch {
             try {
-                val result = loginRepository.loginWithKakao(email, kakaoAccessToken)
+                val result = loginRepository.loginWithKakao(
+                    kakaoAccessToken = kakaoAccessToken,
+                    email = email,
+                    hashedPhoneNumber = hashedPhoneNumber,
+                    profile = profile,
+                    nickname = nickname,
+                    fcmToken = fcmToken
+                )
 
                 if (result.success) {
                     TokenManager.saveTokens(

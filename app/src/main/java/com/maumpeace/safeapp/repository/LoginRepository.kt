@@ -16,12 +16,28 @@ class LoginRepository @Inject constructor(
 
     /**
      * 🔐 카카오 소셜 로그인 요청
+     * @param kakaoAccessToken 카카오 accessToken
      * @param email 카카오 사용자 이메일
-     * @param accessToken 카카오 accessToken
      * @return 서버에서 발급한 JWT 포함 응답
      */
-    suspend fun loginWithKakao(email: String, accessToken: String): LoginData {
-        return apiService.loginWithKakao(FetchLoginData(email, accessToken))
+    suspend fun loginWithKakao(
+        kakaoAccessToken: String,
+        email: String,
+        hashedPhoneNumber: String,
+        profile: String,
+        nickname: String,
+        fcmToken: String
+    ): LoginData {
+        return apiService.loginWithKakao(
+            FetchLoginData(
+                kakaoAccessToken = kakaoAccessToken,
+                email = email,
+                hashedPhoneNumber = hashedPhoneNumber,
+                profile = profile,
+                nickname = nickname,
+                fcmToken = fcmToken
+            )
+        )
     }
 
     /**
