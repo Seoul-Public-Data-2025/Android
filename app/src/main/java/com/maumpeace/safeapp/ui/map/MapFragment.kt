@@ -3,6 +3,8 @@ package com.maumpeace.safeapp.ui.map
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -15,6 +17,9 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.maumpeace.safeapp.R
@@ -22,6 +27,7 @@ import com.maumpeace.safeapp.databinding.FragmentMapBinding
 import com.maumpeace.safeapp.model.MapMarkerInfoData
 import com.maumpeace.safeapp.network.NaverDirectionsService
 import com.maumpeace.safeapp.util.HttpErrorHandler
+import com.maumpeace.safeapp.util.TokenManager
 import com.maumpeace.safeapp.util.UserStateData
 import com.maumpeace.safeapp.viewModel.MapMarkerViewModel
 import com.naver.maps.geometry.LatLng
@@ -39,6 +45,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import timber.log.Timber
 import javax.inject.Inject
+import androidx.core.graphics.scale
 
 /**
  * 🗺 MapFragment - 지도 화면
@@ -157,23 +164,34 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             } != PackageManager.PERMISSION_GRANTED) {
             return
         }
+
+        val profileUrl = TokenManager.getProfile(requireContext())
+        val desiredSize = 100 // 원하는 픽셀 크기 (width, height 둘 다)
+
         LocationServices.getFusedLocationProviderClient(requireContext()).lastLocation.addOnSuccessListener { location ->
             if (location != null) {
-                UserStateData.setMyLatLng(LatLng(location))
-                naverMap.locationOverlay.icon =
-                    OverlayImage.fromResource(R.drawable.ic_default_user_marker)
-                naverMap.locationOverlay.isVisible = true
-                naverMap.locationOverlay.position = LatLng(
-                    UserStateData.getMyLatLng().latitude, UserStateData.getMyLatLng().longitude
-                )
-                naverMap.moveCamera(
-                    CameraUpdate.scrollTo(
-                        LatLng(
-                            UserStateData.getMyLatLng().latitude,
-                            UserStateData.getMyLatLng().longitude
-                        )
-                    )
-                )
+                Glide.with(requireContext())
+                    .asBitmap()
+                    .load(profileUrl)
+                    .circleCrop()
+                    .into(object : CustomTarget<Bitmap>() {
+                        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                            val resized = resource.scale(desiredSize, desiredSize, false)
+                            val overlayImage = OverlayImage.fromBitmap(resized)
+
+                            naverMap.locationOverlay.icon = overlayImage
+                            naverMap.locationOverlay.isVisible = true
+                            naverMap.locationOverlay.position = LatLng(
+                                location.latitude,
+                                location.longitude
+                            )
+                            naverMap.moveCamera(CameraUpdate.scrollTo(LatLng(location.latitude, location.longitude)))
+                        }
+
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            // 필요 없다면 비워두기
+                        }
+                    })
             }
         }
     }
