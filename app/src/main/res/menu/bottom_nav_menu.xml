@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 🗺 지도 메뉴 (왼쪽) -->
+    <item
+        android:id="@+id/nav_map"
+        android:icon="@drawable/ic_map"
+        android:title="지도" />
+
+    <!-- 🕳 가운데 Dummy (동작 없음) -->
+    <item
+        android:id="@+id/nav_dummy"
+        android:enabled="false"
+        android:icon="@android:color/transparent"
+        android:title="" />
+
+    <!-- ⚙️ 설정 메뉴 (오른쪽) -->
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_setting"
+        android:title="설정" />
+
+</menu>
