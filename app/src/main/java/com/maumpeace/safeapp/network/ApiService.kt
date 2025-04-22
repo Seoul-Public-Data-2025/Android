@@ -1,26 +1,22 @@
 package com.maumpeace.safeapp.network
 
-import com.maumpeace.safeapp.model.FetchLoginData
-import com.maumpeace.safeapp.model.FetchLogoutData
-import com.maumpeace.safeapp.model.LoginData
-import com.maumpeace.safeapp.model.LogoutData
-import com.maumpeace.safeapp.model.MapMarkerData
+import com.maumpeace.safeapp.model.*
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
 /**
- * 모든 API 요청을 정의하는 인터페이스
- * suspend 함수는 ViewModel/Repository에서,
- * 동기(Call) 함수는 TokenAuthenticator 등에서 사용
+ * ✅ SafeApp의 모든 REST API 엔드포인트를 정의하는 인터페이스
+ * - ViewModel/Repository에서는 suspend 사용
+ * - TokenAuthenticator 등에서는 동기 Call 사용
  */
 interface ApiService {
 
     /**
      * 🔐 카카오 소셜 로그인 요청
-     * - 서버에 카카오 accessToken, email을 전달
-     * - 응답으로 서버 자체 JWT access/refresh 토큰 반환
+     * @param fetchLoginData 카카오 액세스 토큰 및 이메일
+     * @return 서버 JWT 토큰 포함 응답
      */
     @POST("auth/kakao-login/")
     suspend fun loginWithKakao(
@@ -28,8 +24,9 @@ interface ApiService {
     ): LoginData
 
     /**
-     * 🔁 accessToken 갱신 요청 (suspend: Repository/VM 용)
-     * - refreshToken을 서버에 보내어 accessToken 재발급
+     * 🔁 accessToken 갱신 (비동기)
+     * @param body refreshToken을 담은 맵
+     * @return 새 accessToken 포함 LoginData
      */
     @POST("auth/refresh/")
     suspend fun refreshAccessTokenAsync(
@@ -37,8 +34,8 @@ interface ApiService {
     ): LoginData
 
     /**
-     * 🔁 accessToken 갱신 요청 (동기: Authenticator 전용)
-     * - 같은 기능이지만 Authenticator는 suspend 불가
+     * 🔁 accessToken 갱신 (동기)
+     * TokenAuthenticator에서 사용
      */
     @POST("auth/refresh/")
     fun refreshAccessTokenSync(
@@ -47,7 +44,8 @@ interface ApiService {
 
     /**
      * 🔓 로그아웃 요청
-     * - 서버에서 refreshToken을 폐기
+     * @param fetchLogoutData 사용자 식별 정보
+     * @return 로그아웃 처리 결과
      */
     @POST("auth/logout/")
     suspend fun logout(
@@ -56,6 +54,7 @@ interface ApiService {
 
     /**
      * 🗺️ 지도 마커 요청
+     * @return 서버에서 받은 마커 데이터
      */
     @GET("display-icon/")
     suspend fun mapMarker(): MapMarkerData
