@@ -46,6 +46,7 @@ import retrofit2.HttpException
 import timber.log.Timber
 import javax.inject.Inject
 import androidx.core.graphics.scale
+import com.maumpeace.safeapp.BuildConfig
 
 /**
  * 🗺 MapFragment - 지도 화면
@@ -265,14 +266,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         if (closestMarker != null) {
             val start = "${currentLocation.longitude},${currentLocation.latitude}"
             val goal = "${closestMarker.position.longitude},${closestMarker.position.latitude}"
+            val naverClientId = BuildConfig.NAVER_CLIENT_ID
+            val naverClientSecret = BuildConfig.NAVER_CLIENT_SECRET
 
             lifecycleScope.launch {
                 try {
                     val response = directionsService.getRoutePath(
                         start = start,
                         goal = goal,
-                        clientId = "6zm16zmxr2",
-                        clientSecret = "4QG3QWQ0oRE9tk01Ym10XrRz4Vi8vHGT5hlTPKUF"
+                        clientId = naverClientId,
+                        clientSecret = naverClientSecret
                     )
 
                     val path = response.route.traoptimal.first().path

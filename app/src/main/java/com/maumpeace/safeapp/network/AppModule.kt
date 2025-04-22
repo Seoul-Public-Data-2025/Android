@@ -1,5 +1,6 @@
 package com.maumpeace.safeapp.network
 
+import com.maumpeace.safeapp.BuildConfig
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.repository.LogoutRepository
 import com.maumpeace.safeapp.util.GlobalApplication
@@ -19,7 +20,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val BASE_URL = "http://43.200.182.178/api/"
+    private const val BASE_URL = BuildConfig.BASE_URL
 
     /**
      * ✅ AccessToken을 헤더에 자동 추가하는 Interceptor

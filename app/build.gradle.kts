@@ -1,9 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+}
+
+val localProps = Properties().apply {
+    load(rootProject.file("local.properties").inputStream())
 }
 
 android {
@@ -22,6 +28,17 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "KAKAO_NATIVE_KEY", "\"${localProps["KAKAO_NATIVE_KEY"]}\"")
+        buildConfigField("String", "NAVER_CLIENT_ID", "\"${localProps["NAVER_CLIENT_ID"]}\"")
+        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${localProps["NAVER_CLIENT_SECRET"]}\"")
+        buildConfigField("String", "BASE_URL", "\"${localProps["BASE_URL"]}\"")
+
+        manifestPlaceholders.putAll(
+            mapOf(
+                "kakao_app_key" to requireNotNull(localProps["KAKAO_NATIVE_KEY"]) { "KAKAO_NATIVE_KEY 누락됨" },
+                "naver_client_id" to requireNotNull(localProps["NAVER_CLIENT_ID"]) { "NAVER_CLIENT_ID 누락됨" }
+            )
+        )
     }
 
     buildTypes {
@@ -34,6 +51,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 
     compileOptions {

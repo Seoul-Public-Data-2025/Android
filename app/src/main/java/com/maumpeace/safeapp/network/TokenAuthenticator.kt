@@ -2,6 +2,7 @@ package com.maumpeace.safeapp.network
 
 import android.content.Context
 import android.content.Intent
+import com.maumpeace.safeapp.BuildConfig
 import com.maumpeace.safeapp.model.LoginData
 import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.TokenManager
@@ -28,7 +29,9 @@ class TokenAuthenticator(
         if (responseCount(response) >= 2) return null
 
         // Retrofit 인스턴스 구성 (직접 생성, DI 사용 안함)
-        val retrofit = Retrofit.Builder().baseUrl("http://43.200.182.178/api/")
+        val baseUrl = BuildConfig.BASE_URL
+
+        val retrofit = Retrofit.Builder().baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create()).build()
 
         val apiService = retrofit.create(ApiService::class.java)
