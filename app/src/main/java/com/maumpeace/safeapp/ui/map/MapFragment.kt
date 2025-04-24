@@ -116,9 +116,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         markerDetailOverlayBinding = binding.layoutMarkerDetail
         markerDetailOverlayBinding.root.visibility = View.GONE
 
-        binding.mapView.setOnClickListener {
-            hideMarkerDetail()
-        }
         setupWaypointRecyclerView()
 
         binding.btnCancelRoute.setOnClickListener {
@@ -417,7 +414,23 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val btnConfirm = binding.btnEmergencyConfirm
         val ivMyLocation = binding.ivMyLocation
 
-        binding.layoutMarkerDetail.root.visibility = View.GONE
+        hideMarkerDetail()
+        // 마커 스타일도 복원
+        selectedMarker?.let { prev ->
+            val prevType = selectedMarkerType
+            prev.icon = OverlayImage.fromResource(
+                if (isGuiding && prev != guidingEndMarker) getOffMarkerIconRes(
+                    prevType ?: ""
+                )
+                else getMarkerIconRes(prevType ?: "")
+            )
+            prev.width = 88
+            prev.height = 88
+            prev.map = null
+            prev.map = naverMap
+        }
+        selectedMarker = null
+        selectedMarkerType = null
         ivMyLocation.visibility = View.GONE
         overlay.visibility = View.VISIBLE
 
