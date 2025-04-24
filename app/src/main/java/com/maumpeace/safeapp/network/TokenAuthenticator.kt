@@ -15,8 +15,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 
 /**
- * ✅ TokenAuthenticator
- * - 모든 API 요청에서 accessToken이 만료(401)되면 자동으로 refreshToken으로 갱신
+ * TokenAuthenticator
+ *
+ * accessToken이 만료되었을 때(HTTP 401) 자동으로 refreshToken을 이용해 재발급을 시도하고,
+ * 성공 시 새로운 accessToken으로 요청을 재시도합니다.
+ * refreshToken까지 만료된 경우 로그인 화면으로 이동시킵니다.
  */
 class TokenAuthenticator(
     private val context: Context
@@ -25,38 +28,39 @@ class TokenAuthenticator(
     override fun authenticate(route: Route?, response: Response): Request? {
         val refreshToken = TokenManager.getRefreshToken(context) ?: return null
 
-        // 무한 루프 방지: 이미 한 번 재시도했다면 null 반환
+        // 무한 루프 방지: 이미 재시도한 요청은 중단
         if (responseCount(response) >= 2) return null
 
-        // Retrofit 인스턴스 구성 (직접 생성, DI 사용 안함)
-        val baseUrl = BuildConfig.BASE_URL
-
-        val retrofit = Retrofit.Builder().baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create()).build()
+        // 임시 Retrofit 인스턴스 생성 (DI 비사용)
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
 
         val apiService = retrofit.create(ApiService::class.java)
 
         return try {
-            // 동기 방식으로 refresh 요청
             val result = apiService.refreshAccessTokenSync(
                 mapOf("refreshToken" to refreshToken)
             ).execute()
 
             if (result.isSuccessful) {
-                val body: LoginData? = result.body()
-                val accessToken = body?.result?.accessToken
-                val newRefreshToken = body?.result?.refreshToken
+                val loginData: LoginData? = result.body()
+                val accessToken = loginData?.result?.accessToken
+                val newRefreshToken = loginData?.result?.refreshToken
 
                 if (accessToken.isNullOrEmpty()) return null
 
-                // 새로운 토큰 저장
+                // 새 토큰 저장
                 TokenManager.saveTokens(context, accessToken, newRefreshToken)
 
-                // 원래 요청 재시도 (accessToken만 교체)
-                response.request.newBuilder().header("Authorization", "Bearer $accessToken").build()
+                // 원래 요청에 새 토큰 추가 후 재시도
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer $accessToken")
+                    .build()
             } else {
                 redirectToLogin()
-                null // refreshToken도 만료되었거나 오류
+                null
             }
         } catch (e: IOException) {
             redirectToLogin()
@@ -64,6 +68,9 @@ class TokenAuthenticator(
         }
     }
 
+    /**
+     * 로그인 화면으로 이동
+     */
     private fun redirectToLogin() {
         val intent = Intent(context, LoginActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -72,7 +79,7 @@ class TokenAuthenticator(
     }
 
     /**
-     * ❗ 요청 재시도 횟수 확인 (무한 루프 방지용)
+     * 재시도 횟수 계산 (무한 루프 방지)
      */
     private fun responseCount(response: Response): Int {
         var count = 1

@@ -11,19 +11,27 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.TranslateAnimation
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.graphics.scale
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.maumpeace.safeapp.BuildConfig
 import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.FragmentMapBinding
+import com.maumpeace.safeapp.databinding.MarkerDetailOverlayBinding
 import com.maumpeace.safeapp.model.MapMarkerInfoData
 import com.maumpeace.safeapp.network.NaverDirectionsService
 import com.maumpeace.safeapp.util.HttpErrorHandler
@@ -44,9 +52,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import timber.log.Timber
+import java.util.Collections
 import javax.inject.Inject
-import androidx.core.graphics.scale
-import com.maumpeace.safeapp.BuildConfig
 
 /**
  * 🗺 MapFragment - 지도 화면
@@ -58,6 +65,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     lateinit var directionsService: NaverDirectionsService
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
+    private lateinit var markerDetailOverlayBinding: MarkerDetailOverlayBinding
     private lateinit var naverMap: NaverMap
     private lateinit var locationSource: FusedLocationSource
     private var locationBtnIsClickable: Boolean = true
@@ -71,6 +79,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var selectedMarkerType: String? = null
     private var isGuiding = false
     private var guidingEndMarker: Marker? = null
+    private var isCameraMoving: Boolean = false
+    private val waypoints = mutableListOf<MapMarkerInfoData>()
+    private var destination: MapMarkerInfoData? = null
+
+    private lateinit var waypointAdapter: WaypointAdapter
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -97,6 +111,200 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.llSafetyLight.setOnClickListener { toggleMarker("003", binding.ivSafetyLight) }
         binding.llSafetyFacility.setOnClickListener {
             toggleMarker("004", binding.ivSafetyFacility)
+        }
+
+        markerDetailOverlayBinding = binding.layoutMarkerDetail
+        markerDetailOverlayBinding.root.visibility = View.GONE
+
+        binding.mapView.setOnClickListener {
+            hideMarkerDetail()
+        }
+        setupWaypointRecyclerView()
+
+        binding.btnCancelRoute.setOnClickListener {
+            currentPolyline?.map = null
+            waypoints.clear()
+            destination = null
+            updateWaypointUI()
+        }
+    }
+
+    private fun removeWaypoint(position: Int) {
+        if (position < 0 || position >= waypoints.size) return
+
+        val removed = waypoints.removeAt(position)
+        waypointAdapter.notifyItemRemoved(position)
+        Toast.makeText(requireContext(), "경유지 삭제: ${removed.name}", Toast.LENGTH_SHORT).show()
+        updateRoute()
+        updateWaypointUI()
+    }
+
+
+    private fun setupWaypointRecyclerView() {
+        waypointAdapter = WaypointAdapter(waypoints, ::removeWaypoint)
+        binding.recyclerWaypoint.apply {
+            adapter = waypointAdapter
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+        }
+
+        // Drag & drop / swipe to delete 기능 추가
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT or ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            0 // ← 스와이프 삭제는 끔 (삭제는 버튼으로)
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val fromPos = viewHolder.adapterPosition
+                val toPos = target.adapterPosition
+                Collections.swap(waypoints, fromPos, toPos)
+                waypointAdapter.notifyItemMoved(fromPos, toPos)
+                updateRoute()
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                // Swipe 삭제는 사용 안 함
+            }
+        }
+
+        ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(binding.recyclerWaypoint)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private fun updateWaypointUI() {
+        binding.llRecyclerWaypoint.isVisible = waypoints.isNotEmpty()
+        binding.btnCancelRoute.isVisible = waypoints.isNotEmpty() || destination != null
+        waypointAdapter.notifyDataSetChanged()
+    }
+
+    private fun showMarkerDetail(markerData: MapMarkerInfoData, marker: Marker) {
+        val distance = UserStateData.getMyLatLng().distanceTo(marker.position) / 1000.0
+        markerDetailOverlayBinding.textMarkerName.text = markerData.name ?: when (markerData.type) {
+            "001" -> "경찰서"
+            "002" -> "CCTV"
+            "003" -> "안전 시설물"
+            else -> "지킴이집"
+        }
+        markerDetailOverlayBinding.textMarkerAddress.text = markerData.address ?: "."
+        markerDetailOverlayBinding.textMarkerDistance.text = "거리: %.2fkm".format(distance)
+
+        Glide.with(this).load(markerData.image).placeholder(R.drawable.ic_default_profile)
+            .into(markerDetailOverlayBinding.imageMarker)
+
+        markerDetailOverlayBinding.btnRoute.setOnClickListener {
+            binding.btnCancelRoute.isVisible = true
+            destination = markerData
+            Toast.makeText(requireContext(), "도착지 설정: ${markerData.name}", Toast.LENGTH_SHORT)
+                .show()
+            updateRoute()
+        }
+
+        markerDetailOverlayBinding.btnAddWaypoint.setOnClickListener {
+            if (waypoints.contains(markerData)) {
+                Toast.makeText(requireContext(), "이미 추가된 경유지입니다.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (waypoints.size >= 5) {
+                Toast.makeText(requireContext(), "경유지는 최대 5개까지만 추가할 수 있습니다.", Toast.LENGTH_SHORT)
+                    .show()
+                return@setOnClickListener
+            }
+
+            waypoints.add(markerData)
+            Toast.makeText(requireContext(), "경유지 추가: ${markerData.name}", Toast.LENGTH_SHORT)
+                .show()
+            updateRoute()
+            updateWaypointUI()
+        }
+
+        if (markerDetailOverlayBinding.root.visibility != View.VISIBLE) {
+            markerDetailOverlayBinding.root.visibility = View.VISIBLE
+            val animation =
+                TranslateAnimation(0f, 0f, markerDetailOverlayBinding.root.height.toFloat(), 0f)
+            animation.duration = 300
+            markerDetailOverlayBinding.root.startAnimation(animation)
+        }
+    }
+
+    private fun updateRoute() {
+        val currentLocation = UserStateData.getMyLatLng()
+        val start = UserStateData.getMyLatLng()
+        val goal = destination ?: return
+
+        val startParam = "${start.longitude},${start.latitude}"
+        val goalParam = "${goal.lot},${goal.lat}"
+
+        val waypointParam = waypoints.joinToString("|") { "${it.lot},${it.lat}" }
+
+        val clientId = BuildConfig.NAVER_CLIENT_ID
+        val clientSecret = BuildConfig.NAVER_CLIENT_SECRET
+
+        lifecycleScope.launch {
+            try {
+                val response = directionsService.getRoutePath(
+                    start = startParam,
+                    goal = goalParam,
+                    waypoints = waypointParam,
+                    clientId = clientId,
+                    clientSecret = clientSecret
+                )
+
+                val path = response.route.traoptimal.first().path
+                val coords = path.map { LatLng(it[1], it[0]) }
+
+                currentPolyline?.map = null
+
+                val pathOverlay = PathOverlay().apply {
+                    this.coords = coords
+                    color = resources.getColor(android.R.color.transparent, null)
+                    passedColor = resources.getColor(R.color.red_f55b63, null)
+                    outlineWidth = 5
+                    width = 15
+                    progress = 0.0
+                    map = naverMap
+                }
+                currentPolyline = pathOverlay
+
+                // 애니메이션 진행
+                var time = 0.0
+                val timer = kotlin.concurrent.timer(period = 25) {
+                    if (time <= 1.0) {
+                        time += 0.01
+                    } else {
+                        cancel()
+                    }
+
+                    Handler(Looper.getMainLooper()).post {
+                        pathOverlay.progress = time
+                    }
+                }
+
+                // 카메라 이동: 내 위치 기준
+                val cameraUpdate =
+                    CameraUpdate.scrollTo(currentLocation).animate(CameraAnimation.Fly, 2500)
+                naverMap.moveCamera(cameraUpdate)
+
+            } catch (e: Exception) {
+                Toast.makeText(
+                    requireContext(), "경로 계산 실패: ${e.localizedMessage}", Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        Timber.d("START: $startParam, GOAL: $goalParam, WAYPOINTS: $waypointParam")
+    }
+
+    private fun hideMarkerDetail() {
+        if (markerDetailOverlayBinding.root.isVisible) {
+            val animation =
+                TranslateAnimation(0f, 0f, 0f, markerDetailOverlayBinding.root.height.toFloat())
+            animation.duration = 300
+            markerDetailOverlayBinding.root.startAnimation(animation)
+            markerDetailOverlayBinding.root.visibility = View.GONE
         }
     }
 
@@ -171,22 +379,26 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         LocationServices.getFusedLocationProviderClient(requireContext()).lastLocation.addOnSuccessListener { location ->
             if (location != null) {
-                Glide.with(requireContext())
-                    .asBitmap()
-                    .load(profileUrl)
-                    .circleCrop()
+                Glide.with(requireContext()).asBitmap().load(profileUrl).circleCrop()
                     .into(object : CustomTarget<Bitmap>() {
-                        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                        override fun onResourceReady(
+                            resource: Bitmap, transition: Transition<in Bitmap>?
+                        ) {
                             val resized = resource.scale(desiredSize, desiredSize, false)
                             val overlayImage = OverlayImage.fromBitmap(resized)
 
                             naverMap.locationOverlay.icon = overlayImage
                             naverMap.locationOverlay.isVisible = true
                             naverMap.locationOverlay.position = LatLng(
-                                location.latitude,
-                                location.longitude
+                                location.latitude, location.longitude
                             )
-                            naverMap.moveCamera(CameraUpdate.scrollTo(LatLng(location.latitude, location.longitude)))
+                            naverMap.moveCamera(
+                                CameraUpdate.scrollTo(
+                                    LatLng(
+                                        location.latitude, location.longitude
+                                    )
+                                )
+                            )
                         }
 
                         override fun onLoadCleared(placeholder: Drawable?) {
@@ -205,6 +417,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val btnConfirm = binding.btnEmergencyConfirm
         val ivMyLocation = binding.ivMyLocation
 
+        binding.layoutMarkerDetail.root.visibility = View.GONE
         ivMyLocation.visibility = View.GONE
         overlay.visibility = View.VISIBLE
 
@@ -217,12 +430,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             ivMyLocation.visibility = View.VISIBLE
             overlay.visibility = View.GONE
             if (!isGuiding) {
+                markerDetailOverlayBinding.llWaypoint.visibility = View.GONE
                 textEmergencyMessage.text = "안심경로 안내를 취소할까요?"
                 btnConfirm.text = "안내 취소"
                 isGuiding = true
                 startGuidance() // 현재 구현된 길찾기 실행 코드
             } else {
                 // 안내 종료
+                markerDetailOverlayBinding.llWaypoint.visibility = View.VISIBLE
                 textEmergencyMessage.text = "근처 안심경로로\n안내를 시작할까요?"
                 btnConfirm.text = "안내 시작"
                 isGuiding = false
@@ -246,6 +461,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         val currentLocation = UserStateData.getMyLatLng()
         var closestMarker: Marker? = null
         var minDistance = Double.MAX_VALUE
+
+        waypoints.clear()
+        destination = null
+        updateWaypointUI()
 
         setMarkerVisible("001", binding.ivPolice, true)
         setMarkerVisible("002", binding.ivCctv, true)
@@ -386,6 +605,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun mapMarker() {
+        binding.progressLoading.visibility = View.VISIBLE
         mapMarkerViewModel.mapMarker()
         mapMarkerViewModel.mapMarkerData.observe(viewLifecycleOwner) { mapMarkerData ->
             mapMarkerData?.let {
@@ -424,7 +644,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun showMarkers(markerList: List<MapMarkerInfoData>) {
-        binding.progressLoading.visibility = View.VISIBLE
         Handler(Looper.getMainLooper()).postDelayed({
             markerMap.clear()
 
@@ -446,7 +665,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                     markerMap.getOrPut(type) { mutableListOf() }.add(marker)
 
                     marker.setOnClickListener {
-                        // 이전 마커 원복
+                        // 이전 마커 복원
                         selectedMarker?.let { prev ->
                             val prevType = selectedMarkerType
                             prev.icon = OverlayImage.fromResource(
@@ -461,7 +680,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                             prev.map = naverMap
                         }
 
-                        // 현재 마커 저장 및 강조 표시
+                        // 새 마커 선택
                         selectedMarker = marker
                         selectedMarkerType = type
                         marker.icon = OverlayImage.fromResource(getSelectedMarkerIconRes(type))
@@ -469,6 +688,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         marker.height = 88 * 3
                         marker.map = null
                         marker.map = naverMap
+
+                        // 마커 상세 오버레이 표시
+                        showMarkerDetail(markerData, marker)
                         true
                     }
                 }
@@ -520,19 +742,53 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     override fun onMapReady(naverMapSet: NaverMap) {
         this.naverMap = naverMapSet
         this.naverMap.locationSource = locationSource
-        requestPermissions(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1000
-        )
+
+        requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1000)
+
         naverMap.lightness = 0.0f
         naverMap.maxZoom = 19.0
         naverMap.minZoom = 13.0
 
         mapMarker()
 
-        binding.llSafetyDirections.setOnClickListener {
+        // 사용자가 지도를 직접 터치(클릭)한 경우에만 오버레이 숨기기
+        naverMap.setOnMapClickListener { _, _ ->
+            if (markerDetailOverlayBinding.root.isVisible) {
+                hideMarkerDetail()
+                // 마커 스타일도 복원
+                selectedMarker?.let { prev ->
+                    val prevType = selectedMarkerType
+                    prev.icon = OverlayImage.fromResource(
+                        if (isGuiding && prev != guidingEndMarker) getOffMarkerIconRes(
+                            prevType ?: ""
+                        )
+                        else getMarkerIconRes(prevType ?: "")
+                    )
+                    prev.width = 88
+                    prev.height = 88
+                    prev.map = null
+                    prev.map = naverMap
+                }
+                selectedMarker = null
+                selectedMarkerType = null
+            }
+        }
 
+        // 카메라 상태 리스너 그대로 유지
+        naverMap.addOnCameraChangeListener { _, _ ->
+            isCameraMoving = true
+        }
+        naverMap.addOnCameraIdleListener {
+            Handler(Looper.getMainLooper()).postDelayed({
+                isCameraMoving = false
+            }, 300)
+        }
+
+        binding.llSafetyDirections.setOnClickListener {
+            // ...
         }
     }
+
 
     override fun onStart() {
         super.onStart()

@@ -24,9 +24,10 @@ data class MapMarkerData(
 /**
  * ✅ 지도 마커 데이터 모델
  * - facilityType: 001(결찰서), 002(CCTV), 003(안전시설물), 004(안전지킴이집)
- * - lat, lot: accessToken 만료 시 재발급에 사용하는 토큰
- * - addr: accessToken 만료 시 재발급에 사용하는 토큰
- * - officeName: accessToken 만료 시 재발급에 사용하는 토큰
+ * - lat, lot: 위도, 경도
+ * - addr: 주소
+ * - officeName: 이름
+ * - image: 이미지
  */
 data class MapMarkerInfoData(
     @SerializedName("facilityType") val type: String?,
@@ -38,4 +39,6 @@ data class MapMarkerInfoData(
     @SerializedName("addr") val address: String?,
 
     @SerializedName("officeName") val name: String?,
+  
+    @SerializedName("image") val image: String?,
 )

@@ -11,11 +11,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
+/**
+ * 앱 전역에서 사용될 의존성을 정의하는 Hilt 모듈
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -23,7 +25,7 @@ object AppModule {
     private const val BASE_URL = BuildConfig.BASE_URL
 
     /**
-     * ✅ AccessToken을 헤더에 자동 추가하는 Interceptor
+     * Authorization 헤더 자동 주입 Interceptor
      */
     @Provides
     @Singleton
@@ -41,30 +43,35 @@ object AppModule {
     }
 
     /**
-     * ✅ OkHttpClient: Interceptor + Authenticator 연결
+     * OkHttpClient 구성
+     * - 인증 Interceptor 포함
+     * - 토큰 자동 재발급을 위한 Authenticator 포함
      */
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: Interceptor): OkHttpClient {
         val context = GlobalApplication.INSTANCE.applicationContext
         return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)                         // accessToken 자동 주입
-            .authenticator(TokenAuthenticator(context))              // accessToken 만료 시 자동 갱신
+            .addInterceptor(authInterceptor)
+            .authenticator(TokenAuthenticator(context))
             .build()
     }
 
     /**
-     * ✅ Retrofit 인스턴스 구성
+     * Retrofit 클라이언트 구성
      */
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
-        return Retrofit.Builder().baseUrl(BASE_URL).client(client)
-            .addConverterFactory(GsonConverterFactory.create()).build()
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
     /**
-     * ✅ API 호출 정의 클래스 주입
+     * SafeApp API 서비스 주입
      */
     @Provides
     @Singleton
@@ -73,7 +80,7 @@ object AppModule {
     }
 
     /**
-     * ✅ LoginRepository 주입
+     * LoginRepository 주입
      */
     @Provides
     @Singleton
@@ -82,7 +89,7 @@ object AppModule {
     }
 
     /**
-     * ✅ LogoutRepository 주입
+     * LogoutRepository 주입
      */
     @Provides
     @Singleton
@@ -90,11 +97,14 @@ object AppModule {
         return LogoutRepository(apiService)
     }
 
+    /**
+     * 네이버 경로 API용 Retrofit 서비스 주입
+     */
     @Provides
     @Singleton
     fun provideNaverDirectionsService(): NaverDirectionsService {
         return Retrofit.Builder()
-            .baseUrl("https://maps.apigw.ntruss.com/map-direction/") // 꼭 '/' 포함
+            .baseUrl("https://maps.apigw.ntruss.com/map-direction/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(NaverDirectionsService::class.java)

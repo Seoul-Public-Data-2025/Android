@@ -5,6 +5,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:id="@+id/ll_recyclerWaypoint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_white_rd_8"
+        android:elevation="6dp"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/text_29"
+            android:textColor="@color/black_1e1f1f"
+            android:textSize="16dp"
+            android:textStyle="bold"
+            android:typeface="normal"
+            tools:ignore="SpUsage" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerWaypoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:listitem="@layout/item_waypoint" />
+    </LinearLayout>
+
     <ImageView
         android:id="@+id/iv_my_location"
         android:layout_width="wrap_content"
@@ -16,7 +47,19 @@
         android:padding="8dp"
         android:src="@drawable/ic_map_my_location"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/ll_recyclerWaypoint" />
+
+    <Button
+        android:id="@+id/btn_cancel_route"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:backgroundTint="@color/blue_283081"
+        android:text="길찾기 취소"
+        android:textColor="@android:color/white"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/iv_my_location" />
 
     <com.naver.maps.map.MapView
         android:id="@+id/map_view"
@@ -348,5 +391,13 @@
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
+
+    <include
+        android:id="@+id/layout_marker_detail"
+        layout="@layout/marker_detail_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
