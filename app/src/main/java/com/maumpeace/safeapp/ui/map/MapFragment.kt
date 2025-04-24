@@ -122,7 +122,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             currentPolyline?.map = null
             waypoints.clear()
             destination = null
-            updateWaypointUI()
+            updateWaypointUI() // 기본값 true → 아이콘 복구됨
         }
     }
 
@@ -172,12 +172,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    private fun updateWaypointUI() {
+    private fun updateWaypointUI(shouldUpdateIcons: Boolean = true) {
         binding.llRecyclerWaypoint.isVisible = waypoints.isNotEmpty()
         binding.btnCancelRoute.isVisible = waypoints.isNotEmpty() || destination != null
         waypointAdapter.notifyDataSetChanged()
+        if (shouldUpdateIcons) updateAllMarkerIcons()
     }
-
     private fun showMarkerDetail(markerData: MapMarkerInfoData, marker: Marker) {
         val distance = UserStateData.getMyLatLng().distanceTo(marker.position) / 1000.0
         markerDetailOverlayBinding.textMarkerName.text = markerData.name ?: when (markerData.type) {
@@ -195,9 +195,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         markerDetailOverlayBinding.btnRoute.setOnClickListener {
             binding.btnCancelRoute.isVisible = true
             destination = markerData
-            Toast.makeText(requireContext(), "도착지 설정: ${markerData.name}", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(requireContext(), "도착지 설정: ${markerData.name}", Toast.LENGTH_SHORT).show()
             updateRoute()
+            updateAllMarkerIcons() // ✅ 도착지 설정 이후 마커 아이콘 갱신
         }
 
         markerDetailOverlayBinding.btnAddWaypoint.setOnClickListener {
@@ -206,16 +206,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 return@setOnClickListener
             }
             if (waypoints.size >= 5) {
-                Toast.makeText(requireContext(), "경유지는 최대 5개까지만 추가할 수 있습니다.", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "경유지는 최대 5개까지만 추가할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             waypoints.add(markerData)
-            Toast.makeText(requireContext(), "경유지 추가: ${markerData.name}", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(requireContext(), "경유지 추가: ${markerData.name}", Toast.LENGTH_SHORT).show()
             updateRoute()
-            updateWaypointUI()
+            updateWaypointUI(false) // ❌ 아이콘은 변경하지 않음
         }
 
         if (markerDetailOverlayBinding.root.visibility != View.VISIBLE) {
@@ -681,12 +679,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         // 이전 마커 복원
                         selectedMarker?.let { prev ->
                             val prevType = selectedMarkerType
-                            prev.icon = OverlayImage.fromResource(
-                                if (isGuiding && prev != guidingEndMarker) getOffMarkerIconRes(
-                                    prevType ?: ""
-                                )
-                                else getMarkerIconRes(prevType ?: "")
-                            )
+                            prev.icon = OverlayImage.fromResource(getProperMarkerIconRes(prev, prevType ?: ""))
+
                             prev.width = 88
                             prev.height = 88
                             prev.map = null
@@ -742,6 +736,42 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
+    private fun updateAllMarkerIcons() {
+        val shouldDimOthers = binding.btnCancelRoute.isVisible
+
+        for ((type, markers) in markerMap) {
+            val isVisible = markerVisibleMap[type] ?: true // 👈 사용자가 숨긴 타입인지 체크
+
+            for (marker in markers) {
+                val isWaypoint = waypoints.any {
+                    it.lat?.toDoubleOrNull() == marker.position.latitude &&
+                            it.lot?.toDoubleOrNull() == marker.position.longitude
+                }
+
+                val isDestination = destination?.let {
+                    it.lat?.toDoubleOrNull() == marker.position.latitude &&
+                            it.lot?.toDoubleOrNull() == marker.position.longitude
+                } ?: false
+
+                val iconRes = if (shouldDimOthers) {
+                    if (isWaypoint || isDestination) getMarkerIconRes(type) else getOffMarkerIconRes(type)
+                } else {
+                    getMarkerIconRes(type)
+                }
+
+                marker.icon = OverlayImage.fromResource(iconRes)
+
+                // ✅ 숨김 상태면 지도에서 제거
+                if (isVisible) {
+                    marker.map = null
+                    marker.map = naverMap
+                } else {
+                    marker.map = null
+                }
+            }
+        }
+    }
+
     private fun getMarkerIconRes(type: String): Int {
         return when (type) {
             "001" -> R.drawable.ic_police
@@ -771,12 +801,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 // 마커 스타일도 복원
                 selectedMarker?.let { prev ->
                     val prevType = selectedMarkerType
-                    prev.icon = OverlayImage.fromResource(
-                        if (isGuiding && prev != guidingEndMarker) getOffMarkerIconRes(
-                            prevType ?: ""
-                        )
-                        else getMarkerIconRes(prevType ?: "")
-                    )
+                    prev.icon = OverlayImage.fromResource(getProperMarkerIconRes(prev, prevType ?: ""))
                     prev.width = 88
                     prev.height = 88
                     prev.map = null
@@ -801,6 +826,27 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             // ...
         }
     }
+
+    private fun getProperMarkerIconRes(marker: Marker, type: String): Int {
+        val shouldDimOthers = binding.btnCancelRoute.isVisible
+
+        val isWaypoint = waypoints.any {
+            it.lat?.toDoubleOrNull() == marker.position.latitude &&
+                    it.lot?.toDoubleOrNull() == marker.position.longitude
+        }
+
+        val isDestination = destination?.let {
+            it.lat?.toDoubleOrNull() == marker.position.latitude &&
+                    it.lot?.toDoubleOrNull() == marker.position.longitude
+        } ?: false
+
+        return if (shouldDimOthers && !isWaypoint && !isDestination) {
+            getOffMarkerIconRes(type)
+        } else {
+            getMarkerIconRes(type)
+        }
+    }
+
 
 
     override fun onStart() {
