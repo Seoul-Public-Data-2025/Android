@@ -23,6 +23,7 @@ interface NaverDirectionsService {
     suspend fun getRoutePath(
         @Query("start") start: String,
         @Query("goal") goal: String,
+        @Query("waypoints") waypoints: String? = null,
         @Header("X-NCP-APIGW-API-KEY-ID") clientId: String,
         @Header("X-NCP-APIGW-API-KEY") clientSecret: String
     ): DirectionsResponse

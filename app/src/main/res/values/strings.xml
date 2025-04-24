@@ -28,4 +28,7 @@
     <string name="text_24">개인정보처리방침</string>
     <string name="text_25">회원탈퇴</string>
     <string name="text_26">로그아웃</string>
+    <string name="text_27">경유</string>
+    <string name="text_28">도착</string>
+    <string name="text_29">경유지</string>
 </resources>

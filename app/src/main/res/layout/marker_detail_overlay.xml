@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_radius"
+    android:orientation="vertical"
+    android:paddingBottom="60dp">
+
+    <View
+        android:layout_width="32dp"
+        android:layout_height="5dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_331e1f1f_rd_100" />
+
+    <TextView
+        android:id="@+id/text_marker_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/black_1e1f1f"
+        android:textSize="18dp"
+        android:textStyle="bold"
+        android:typeface="normal"
+        tools:ignore="SpUsage"
+        tools:text="장소명" />
+
+    <TextView
+        android:id="@+id/text_marker_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/black_1e1f1f"
+        android:textSize="14dp"
+        android:typeface="normal"
+        tools:ignore="SpUsage"
+        tools:text="주소" />
+
+    <TextView
+        android:id="@+id/text_marker_distance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/black_1e1f1f"
+        android:textSize="14dp"
+        android:typeface="normal"
+        tools:ignore="SpUsage"
+        tools:text="거리" />
+
+    <LinearLayout
+        android:id="@+id/ll_waypoint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_add_waypoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_283081_rd_100"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="@string/text_27"
+            android:textColor="@color/white"
+            android:textSize="12dp"
+            tools:ignore="SpUsage" />
+
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/btn_route"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_283081_rd_100"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="@string/text_28"
+            android:textColor="@color/white"
+            android:textSize="12dp"
+            tools:ignore="SpUsage" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/image_marker"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_image_round"
+        android:clipToOutline="true"
+        android:contentDescription="@string/iv"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_default_profile"
+        tools:targetApi="31" />
+
+</LinearLayout>
