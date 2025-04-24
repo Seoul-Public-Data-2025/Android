@@ -39,6 +39,6 @@ data class MapMarkerInfoData(
     @SerializedName("addr") val address: String?,
 
     @SerializedName("officeName") val name: String?,
-
+  
     @SerializedName("image") val image: String?,
 )
