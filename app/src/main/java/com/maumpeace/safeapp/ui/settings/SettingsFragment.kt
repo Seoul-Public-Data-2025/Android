@@ -2,7 +2,6 @@ package com.maumpeace.safeapp.ui.settings
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,6 +46,21 @@ class SettingsFragment : Fragment() {
 
         Glide.with(this).load(profile).error(R.drawable.ic_default_profile).into(binding.ivProfile)
         binding.tvNickName.text = nickname ?: "마음이"
+
+        //공지사항
+        binding.llNoti.setOnClickListener {
+            startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 1))
+        }
+
+        //도움말
+        binding.llHelp.setOnClickListener {
+            startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 2))
+        }
+
+        //개인정보처리방침
+        binding.llPolicy.setOnClickListener {
+            startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 3))
+        }
 
         // 🔐 로그아웃 클릭 리스너 설정
         binding.llLogout.setOnClickListener {

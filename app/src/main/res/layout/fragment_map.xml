@@ -18,11 +18,14 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_331e1f1f_rd_100"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
             android:text="@string/text_29"
-            android:textColor="@color/black_1e1f1f"
-            android:textSize="16dp"
+            android:textColor="@color/white"
+            android:textSize="12dp"
             android:textStyle="bold"
             android:typeface="normal"
             tools:ignore="SpUsage" />
@@ -34,6 +37,74 @@
             android:layout_marginTop="8dp"
             app:layout_constraintTop_toTopOf="parent"
             tools:listitem="@layout/item_waypoint" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_331e1f1f_rd_100"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp">
+
+            <TextView
+                android:id="@+id/tv_destination"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginHorizontal="8dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:text="@string/text_32"
+                android:textColor="@color/white"
+                android:textSize="12dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
+
+            <ImageView
+                android:id="@+id/btn_remove_destination"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/iv"
+                android:src="@drawable/ic_waypoint_remove"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_cancel_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_f55b63_rd_100"
+                android:backgroundTint="@color/red_f55b63"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/text_30"
+                android:textColor="@android:color/white"
+                android:textSize="14dp"
+                tools:ignore="SpUsage" />
+
+            <TextView
+                android:id="@+id/btn_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginStart="4dp"
+                android:background="@drawable/rd_283081_16"
+                android:backgroundTint="@color/blue_283081"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/text_31"
+                android:textColor="@android:color/white"
+                android:textSize="14dp"
+                tools:ignore="SpUsage" />
+        </LinearLayout>
     </LinearLayout>
 
     <ImageView
@@ -49,18 +120,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ll_recyclerWaypoint" />
 
-    <Button
-        android:id="@+id/btn_cancel_route"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:backgroundTint="@color/blue_283081"
-        android:text="길찾기 취소"
-        android:textColor="@android:color/white"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/iv_my_location" />
-
     <com.naver.maps.map.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
@@ -70,14 +129,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- 👇 바텀시트 역할을 하는 View (처음엔 GONE) -->
         <LinearLayout
-            android:id="@+id/map_bottom_sheet"
+            android:id="@+id/option_bottom_sheet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_bottom_sheet_radius"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="88dp"
             app:behavior_hideable="false"
             app:behavior_peekHeight="0dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
@@ -235,6 +295,7 @@
                 android:textSize="16dp"
                 android:textStyle="bold"
                 android:typeface="normal"
+                android:visibility="gone"
                 tools:ignore="SpUsage" />
 
             <GridLayout
@@ -242,7 +303,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="56dp"
-                android:columnCount="4">
+                android:columnCount="4"
+                android:visibility="gone">
 
                 <!-- 안전경로 안내 -->
                 <LinearLayout
@@ -300,6 +362,119 @@
                     tools:ignore="UselessLeaf" />
 
             </GridLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/marker_info_bottom_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bottom_sheet_radius"
+            android:orientation="vertical"
+            android:paddingBottom="60dp"
+            android:visibility="gone"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="5dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_331e1f1f_rd_100" />
+
+            <TextView
+                android:id="@+id/text_marker_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="18dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage"
+                tools:text="장소명" />
+
+            <TextView
+                android:id="@+id/text_marker_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="14dp"
+                android:typeface="normal"
+                tools:ignore="SpUsage"
+                tools:text="주소" />
+
+            <TextView
+                android:id="@+id/text_marker_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="14dp"
+                android:typeface="normal"
+                tools:ignore="SpUsage"
+                tools:text="거리" />
+
+            <LinearLayout
+                android:id="@+id/ll_waypoint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btn_add_waypoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_283081_rd_100"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="@string/text_27"
+                    android:textColor="@color/white"
+                    android:textSize="12dp"
+                    tools:ignore="SpUsage" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/btn_route_designation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_283081_rd_100"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="@string/text_28"
+                    android:textColor="@color/white"
+                    android:textSize="12dp"
+                    tools:ignore="SpUsage" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/image_marker"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_image_round"
+                android:clipToOutline="true"
+                android:contentDescription="@string/iv"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_default_profile"
+                tools:targetApi="31" />
+
         </LinearLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
@@ -396,13 +571,5 @@
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>
-
-    <include
-        android:id="@+id/layout_marker_detail"
-        layout="@layout/marker_detail_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

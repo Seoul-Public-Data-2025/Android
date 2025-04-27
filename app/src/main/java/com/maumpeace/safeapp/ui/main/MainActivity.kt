@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -16,6 +17,7 @@ import com.google.android.gms.location.Priority
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.ActivityMainBinding
+import com.maumpeace.safeapp.ui.dialog.ExitConfirmBottomSheet
 import com.maumpeace.safeapp.ui.map.MapFragment
 import com.maumpeace.safeapp.ui.settings.SettingsFragment
 import com.maumpeace.safeapp.util.UserStateData
@@ -28,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var mapFragment: MapFragment
     private lateinit var settingsFragment: SettingsFragment
+    private var lastBackPressedTime = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +41,31 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         setupSafetyButton()
         startLocationUpdates()
+
+        onBackPressedDispatcher.addCallback(this) {
+            val currentTime = System.currentTimeMillis()
+
+            // ✅ 0.5초(500ms) 이내에 또 누르면 무시
+            if (currentTime - lastBackPressedTime < 500) {
+                return@addCallback
+            }
+            lastBackPressedTime = currentTime
+
+            val currentFragment = supportFragmentManager.fragments.find { it.isVisible }
+
+            when (currentFragment) {
+                is SettingsFragment -> {
+                    switchFragment(mapFragment)
+                    binding.bottomNav.selectedItemId = R.id.nav_map
+                }
+                is MapFragment -> {
+                    showExitConfirmDialog()
+                }
+                else -> {
+                    finish()
+                }
+            }
+        }
     }
 
     private fun setupFragments() {
@@ -127,5 +155,18 @@ class MainActivity : AppCompatActivity() {
             binding.bottomNav.selectedItemId = R.id.nav_map
             mapFragment.triggerSafetyFeature()
         }
+    }
+
+    private fun showExitConfirmDialog() {
+        val existingDialog = supportFragmentManager.findFragmentByTag("ExitConfirmDialog")
+        if (existingDialog != null && existingDialog.isVisible) {
+            // 이미 팝업이 떠있으면 새로 띄우지 않는다
+            return
+        }
+
+        val dialog = ExitConfirmBottomSheet {
+            finish() // 앱 종료
+        }
+        dialog.show(supportFragmentManager, "ExitConfirmDialog")
     }
 }
