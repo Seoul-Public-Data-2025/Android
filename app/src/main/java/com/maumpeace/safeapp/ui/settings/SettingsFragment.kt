@@ -18,14 +18,11 @@ import com.maumpeace.safeapp.ui.dialog.LogoutConfirmBottomSheet
 import com.maumpeace.safeapp.ui.dialog.SecessionConfirmBottomSheet
 import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.TokenManager
+import com.maumpeace.safeapp.viewModel.AlarmViewModel
 import com.maumpeace.safeapp.viewModel.LogoutViewModel
 import com.maumpeace.safeapp.viewModel.SecessionViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-
-/**
- * ⚙️ SettingsFragment - 설정 화면
- */
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -34,6 +31,7 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val logoutViewModel: LogoutViewModel by viewModels()
     private val secessionViewModel: SecessionViewModel by viewModels()
+    private val alarmViewModel: AlarmViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -51,82 +49,100 @@ class SettingsFragment : Fragment() {
         Glide.with(this).load(profile).error(R.drawable.ic_default_profile).into(binding.ivProfile)
         binding.tvNickName.text = nickname ?: "마음이"
 
-        //공지사항
+        setupClickListeners()
+        setupAlarmSwitch()
+    }
+
+    private fun setupClickListeners() {
         binding.llNoti.setOnClickListener {
             startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 1))
         }
-
-        //도움말
         binding.llHelp.setOnClickListener {
             startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 2))
         }
-
-        //개인정보처리방침
         binding.llPolicy.setOnClickListener {
             startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 3))
         }
+        binding.llLogout.setOnClickListener { showExitConfirmDialog() }
+        binding.tvSecession.setOnClickListener { showSecessionConfirmDialog() }
+    }
 
-        // 🔐 로그아웃 클릭 리스너 설정
-        binding.llLogout.setOnClickListener {
-            showExitConfirmDialog()
-        }
+    private fun setupAlarmSwitch() {
+        // 초기 스위치 상태 로컬 저장값 기반
+        val isAlarmEnabled = TokenManager.getAlarmPermission(requireContext()) ?: true
+        binding.switchAlarm.isChecked = isAlarmEnabled
 
-        // 회원탈퇴
-        binding.tvSecession.setOnClickListener {
-            showSecessionConfirmDialog()
+        binding.switchAlarm.setOnCheckedChangeListener { buttonView, isChecked ->
+            val hashedPhoneNumber = TokenManager.getHashedPhoneNumber(requireContext())
+            if (hashedPhoneNumber.isNullOrBlank()) {
+                Toast.makeText(requireContext(), "전화번호 정보가 없습니다.", Toast.LENGTH_SHORT).show()
+                buttonView.isChecked = !isChecked // 롤백
+                return@setOnCheckedChangeListener
+            }
+
+            // 서버에 알람 설정 요청
+            alarmViewModel.alarm(isChecked, hashedPhoneNumber)
+
+            alarmViewModel.alarmData.observe(viewLifecycleOwner) { alarmData ->
+                alarmData?.result?.notification?.let { notificationEnabled ->
+                    TokenManager.saveAlarmPermission(requireContext(), notificationEnabled)
+                    binding.switchAlarm.isChecked = notificationEnabled
+                }
+            }
+
+            alarmViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
+                error?.let {
+                    Toast.makeText(requireContext(), "알람 설정 실패: $it", Toast.LENGTH_SHORT).show()
+                    buttonView.isChecked = !isChecked // 실패했으면 롤백
+                }
+            }
         }
     }
 
     private fun showExitConfirmDialog() {
         val logoutDialog = parentFragmentManager.findFragmentByTag("LogoutConfirmDialog")
-        if (logoutDialog != null && logoutDialog.isVisible) {
-            // 이미 팝업이 떠있으면 새로 띄우지 않는다
-            return
+        if (logoutDialog == null || !logoutDialog.isVisible) {
+            LogoutConfirmBottomSheet { performLogout() }
+                .show(parentFragmentManager, "LogoutConfirmDialog")
         }
-
-        val dialog = LogoutConfirmBottomSheet {
-            performLogout()
-        }
-        dialog.show(parentFragmentManager, "LogoutConfirmDialog")
     }
 
     private fun showSecessionConfirmDialog() {
         val secessionDialog = parentFragmentManager.findFragmentByTag("SecessionConfirmDialog")
-        if (secessionDialog != null && secessionDialog.isVisible) {
-            // 이미 팝업이 떠있으면 새로 띄우지 않는다
-            return
+        if (secessionDialog == null || !secessionDialog.isVisible) {
+            SecessionConfirmBottomSheet { performSecession() }
+                .show(parentFragmentManager, "SecessionConfirmDialog")
+        }
+    }
+
+    private fun performAlarm(notification: Boolean, hashedPhoneNumber: String) {
+        alarmViewModel.alarm(notification, hashedPhoneNumber)
+        alarmViewModel.alarmData.observe(viewLifecycleOwner) { alarmData ->
+            alarmData?.let {
+            }
         }
 
-        val dialog = SecessionConfirmBottomSheet {
-            performSecession()
+        alarmViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
+            error?.let { Timber.tag("error: ").e(it) }
         }
-        dialog.show(parentFragmentManager, "SecessionConfirmDialog")
     }
 
     private fun performSecession() {
         secessionViewModel.secession()
         secessionViewModel.secessionData.observe(viewLifecycleOwner) { secessionData ->
-            // 회원탈퇴 성공 처리
             secessionData?.let {
                 UserApiClient.instance.logout { error ->
                     if (error != null) {
-                        Toast.makeText(
-                            requireContext(),
-                            "회원탈퇴 실패: ${error.localizedMessage}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), "회원탈퇴 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     } else {
                         UserApiClient.instance.unlink {
-                            // 🔄 SharedPreferences 초기화
                             requireContext().getSharedPreferences(
                                 "auth", AppCompatActivity.MODE_PRIVATE
                             ).edit { clear() }
 
-                            // LoginActivity로 이동
-                            val intent = Intent(requireContext(), LoginActivity::class.java)
-                            intent.flags =
-                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
+                            startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            })
                             Toast.makeText(requireContext(), "서비스를 이용해주셔서 감사합니다", Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -135,37 +151,27 @@ class SettingsFragment : Fragment() {
         }
 
         secessionViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Timber.tag("error: ").e(it)
-            }
+            error?.let { Timber.tag("error: ").e(it) }
         }
     }
 
     private fun performLogout() {
         val refreshToken = TokenManager.getRefreshToken(requireContext())
-        logoutViewModel.logout(refreshToken.toString())
+        logoutViewModel.logout(refreshToken.orEmpty())
         logoutViewModel.logoutData.observe(viewLifecycleOwner) { logoutData ->
-            // 로그인 성공 처리
             logoutData?.let {
                 UserApiClient.instance.logout { error ->
                     if (error != null) {
-                        Toast.makeText(
-                            requireContext(),
-                            "로그아웃 실패: ${error.localizedMessage}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(requireContext(), "로그아웃 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
                     } else {
                         UserApiClient.instance.unlink {
-                            // 🔄 SharedPreferences 초기화
                             requireContext().getSharedPreferences(
                                 "auth", AppCompatActivity.MODE_PRIVATE
                             ).edit { clear() }
 
-                            // 🚪 LoginActivity로 이동
-                            val intent = Intent(requireContext(), LoginActivity::class.java)
-                            intent.flags =
-                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
+                            startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            })
                         }
                     }
                 }
@@ -173,10 +179,7 @@ class SettingsFragment : Fragment() {
         }
 
         logoutViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
-            error?.let {
-                Timber.tag("error: ").e(it)
-//                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-            }
+            error?.let { Timber.tag("error: ").e(it) }
         }
     }
 

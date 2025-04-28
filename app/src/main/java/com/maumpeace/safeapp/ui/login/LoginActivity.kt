@@ -20,6 +20,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.databinding.ActivityLoginBinding
 import com.maumpeace.safeapp.ui.main.MainActivity
+import com.maumpeace.safeapp.util.TokenManager
 import com.maumpeace.safeapp.viewModel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -58,18 +59,22 @@ class LoginActivity : AppCompatActivity() {
 
     @SuppressLint("MissingPermission", "HardwareIds")
     private fun logHashedPhoneNumberWithPermissionCheck() {
-        val permissions = arrayOf(
+        val permissions = mutableListOf(
             Manifest.permission.READ_PHONE_NUMBERS,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_SMS
         )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
 
         val isGranted = permissions.all {
             ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
         }
 
         if (!isGranted) {
-            ActivityCompat.requestPermissions(this, permissions, 1234)
+            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), 1234)
             return
         }
 
@@ -81,6 +86,8 @@ class LoginActivity : AppCompatActivity() {
             val hash = sha256.digest(phoneNumber.toByteArray())
             val encoded = Base64.encodeToString(hash, Base64.NO_WRAP)
             Timber.tag("PHONE_HASH").d("전화번호 해시: $encoded")
+
+            TokenManager.saveHashedPhoneNumber(this, encoded)
         } else {
             Timber.tag("PHONE_HASH").w("전화번호를 불러오지 못했습니다.")
         }
@@ -129,11 +136,23 @@ class LoginActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == 1234 && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-            logHashedPhoneNumberWithPermissionCheck()
-        } else {
-            Timber.tag("PHONE_HASH").w("권한이 거부되어 전화번호를 수집할 수 없습니다.")
+        if (requestCode == 1234) {
+            val isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissions.indexOf(Manifest.permission.POST_NOTIFICATIONS).takeIf { it != -1 }
+                    ?.let { grantResults[it] == PackageManager.PERMISSION_GRANTED } ?: false
+            } else {
+                true // Android 12 이하는 기본 허용
+            }
+
+            TokenManager.saveAlarmPermission(this, isNotificationGranted)
+
+            if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                logHashedPhoneNumberWithPermissionCheck()
+            } else {
+                Timber.tag("PHONE_HASH").w("권한이 거부되어 전화번호를 수집할 수 없습니다.")
+            }
         }
+
     }
 
     /**

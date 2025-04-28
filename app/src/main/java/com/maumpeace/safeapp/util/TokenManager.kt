@@ -16,6 +16,37 @@ object TokenManager {
     private const val PROFILE = "profile"
     private const val NICKNAME = "nickname"
 
+    fun saveHashedPhoneNumber(context: Context, hashedPhoneNumber: String) {
+        getPrefs(context).edit {
+            putString("hashed_phone_number", hashedPhoneNumber)
+        }
+    }
+
+    fun getHashedPhoneNumber(context: Context): String? {
+        return getPrefs(context).getString("hashed_phone_number", null)
+    }
+
+
+    /**
+     * ✅ 알림 권한 저장
+     */
+    fun saveAlarmPermission(context: Context, isGranted: Boolean) {
+        getPrefs(context).edit {
+            putBoolean("alarm_permission", isGranted)
+        }
+    }
+
+    /**
+     * ✅ 알림 권한 조회
+     */
+    fun getAlarmPermission(context: Context): Boolean? {
+        return if (getPrefs(context).contains("alarm_permission")) {
+            getPrefs(context).getBoolean("alarm_permission", true)
+        } else {
+            null
+        }
+    }
+
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     }
