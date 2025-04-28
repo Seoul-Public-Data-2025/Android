@@ -24,7 +24,7 @@ android {
         applicationId = "com.maumpeace.safeapp"
         minSdk = 28
         targetSdk = 35
-        versionCode = 2
+        versionCode = 3
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -97,7 +97,6 @@ dependencies {
     implementation (libs.glide)
     annotationProcessor (libs.compiler)
 
-    // ✅ Fragment에서 by viewModels() 사용 가능하게 해줌
     implementation (libs.androidx.fragment.ktx)
 
     implementation(platform(libs.firebase.bom))
