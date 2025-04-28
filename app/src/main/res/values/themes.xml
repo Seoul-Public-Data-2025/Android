@@ -19,10 +19,10 @@
         <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
     </style>
 
-<!--    <style name="TransparentBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">-->
-<!--        <item name="android:background">@drawable/bg_bottom_sheet_radius</item>-->
-<!--    </style>-->
-
+    <style name="Theme.SafeApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- 기본 배경 설정 -->
+        <item name="android:windowBackground">@drawable/ic_bg_splash</item>
+    </style>
 
     <style name="TransparentBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>

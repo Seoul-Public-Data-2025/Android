@@ -8,9 +8,11 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.view.animation.AccelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import com.kakao.sdk.auth.AuthApiClient
 import com.kakao.sdk.user.UserApiClient
+import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.ActivitySplashBinding
 import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.ui.main.MainActivity
@@ -54,21 +56,23 @@ class SplashActivity : AppCompatActivity() {
             getSharedPreferences("auth", MODE_PRIVATE).getBoolean("isLoginSuccess", false)
         val accessToken = TokenManager.getAccessToken(this)
 
-        if (isLoginSuccess && !accessToken.isNullOrBlank() && AuthApiClient.instance.hasToken()) {
-            UserApiClient.instance.accessTokenInfo { _, error ->
-                val intent = if (error != null) {
-                    Intent(this, LoginActivity::class.java)
-                } else {
-                    Intent(this, MainActivity::class.java)
-                }
-                startActivity(intent)
+        val nextIntent = if (isLoginSuccess && !accessToken.isNullOrBlank() && AuthApiClient.instance.hasToken()) {
+            Intent(this, MainActivity::class.java)
+        } else {
+            Intent(this, LoginActivity::class.java)
+        }
+
+        // 🎯 반절 올라가면서 서서히 사라지기
+        binding.root.animate()
+            .translationY(-binding.root.height * 0.25f) // 반절만 위로 이동
+            .alpha(0f) // 동시에 투명해지기
+            .setInterpolator(AccelerateInterpolator()) // 점점 빨라지는 느낌
+            .setDuration(700) // 0.7초 정도로 자연스럽게
+            .withEndAction {
+                startActivity(nextIntent)
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
                 finish()
             }
-        } else {
-            startActivity(Intent(this, LoginActivity::class.java))
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-            finish()
-        }
+            .start()
     }
 }
