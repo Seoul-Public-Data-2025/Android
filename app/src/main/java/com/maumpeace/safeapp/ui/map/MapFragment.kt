@@ -82,6 +82,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var isUserTurnedOffCctv = false
     private var isUserTurnedOffSafety = false
     private var isGuiding = false
+    private val cctvMarkerMap = mutableMapOf<LatLng, Marker>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -645,9 +646,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 if (type == "001" || type == "004") {
                     captionText = data.name?.split(" ")?.last() ?: ""
-                    captionColor = resources.getColor(R.color.black, null) // 👈 글자색 설정 (선택)
-                    captionHaloColor =
-                        resources.getColor(android.R.color.transparent, null) // 👈 테두리 없애기
+                    captionColor = resources.getColor(R.color.black, null)
+                    captionHaloColor = resources.getColor(android.R.color.transparent, null)
                 }
             }
 
@@ -657,6 +657,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             }
 
             markerMap.getOrPut(type) { mutableListOf() }.add(marker)
+
+            if (type == "002") { // CCTV만 따로 관리
+                cctvMarkerMap[LatLng(lat, lot)] = marker
+            }
         }
     }
 
@@ -676,10 +680,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
 
         // 2. 현재 클릭한 마커 저장
-        selectedMarker = markerMap[markerData.type]?.find {
-            it.position.latitude == markerData.lat?.toDoubleOrNull() && it.position.longitude == markerData.lot?.toDoubleOrNull()
+        selectedMarker = if (markerData.type == "002") {
+            // CCTV는 빠르게 HashMap 조회
+            val lat = markerData.lat?.toDoubleOrNull()
+            val lot = markerData.lot?.toDoubleOrNull()
+            if (lat != null && lot != null) {
+                cctvMarkerMap[LatLng(lat, lot)]
+            } else {
+                null
+            }
+        } else {
+            // 나머지는 기존 방식
+            markerMap[markerData.type]?.find {
+                it.position.latitude == markerData.lat?.toDoubleOrNull() &&
+                        it.position.longitude == markerData.lot?.toDoubleOrNull()
+            }
         }
         selectedMarkerType = markerData.type
+
 
         // 3. 선택된 마커를 destination 스타일로 변경
         selectedMarker?.let { marker ->
