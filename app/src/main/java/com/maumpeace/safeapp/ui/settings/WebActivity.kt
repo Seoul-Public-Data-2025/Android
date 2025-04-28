@@ -6,54 +6,64 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.MenuItem
+import android.view.WindowManager
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.ActivityWebBinding
 import java.net.URISyntaxException
 
 
 class WebActivity : AppCompatActivity() {
 
-    private lateinit var activityWebBinding: ActivityWebBinding
-    private var type: String? = null
+    private lateinit var binding: ActivityWebBinding
     private val callback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            if (type == "landing") {
-                if (activityWebBinding.webView.canGoBack()) {
-                    activityWebBinding.webView.goBack()
-                } else {
-                    finish()
-                }
-            } else {
-                finish()
-            }
+            finish()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.onBackPressedDispatcher.addCallback(this, callback)
-        activityWebBinding = ActivityWebBinding.inflate(layoutInflater)
-        setContentView(activityWebBinding.root)
+        binding = ActivityWebBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initWebView()
+
+        this.onBackPressedDispatcher.addCallback(this, callback)
+        setSupportActionBar()
+    }
+
+    private fun setSupportActionBar() {
+        setSupportActionBar(binding.headTb)
+        supportActionBar?.apply {
+            setDisplayShowTitleEnabled(false)
+            setDisplayHomeAsUpEnabled(true)
+        }
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE
+        ) // 캡처 방지
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            finish()
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     @SuppressLint(
         "ObsoleteSdkInt", "SetJavaScriptEnabled", "WebViewApiAvailability", "JavascriptInterface"
     )
     private fun initWebView() {
-        val webView = findViewById<WebView>(R.id.web_view)
-        val backBtn = findViewById<ImageView>(R.id.back_press_btn)
-        val webTitle = findViewById<TextView>(R.id.web_title)
-        val webImg = findViewById<WebView>(R.id.web_img)
+        val webView = binding.webView
+        val webTitle = binding.nameTv
+        val webImg = binding.webImg
 
         val settings = webView.settings
         settings.loadWithOverviewMode = true
@@ -109,12 +119,6 @@ class WebActivity : AppCompatActivity() {
         webImg.settings.builtInZoomControls = true
         webImg.settings.setSupportZoom(true)
         webImg.settings.displayZoomControls = false
-
-        webTitle.text = intent.getStringExtra("title")
-
-        backBtn.setOnClickListener {
-            finish()
-        }
 
         when (intent.getIntExtra("type", -1)) {
             1 -> {

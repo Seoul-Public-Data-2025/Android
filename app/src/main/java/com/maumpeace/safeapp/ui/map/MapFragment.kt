@@ -563,22 +563,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 // 바로 카메라 이동
                 naverMap.moveCamera(CameraUpdate.scrollTo(userLatLng))
-
-                // 내 위치 아이콘 커스텀 (88px 리사이즈)
-//                Glide.with(this).asBitmap().load(R.drawable.ic_default_profile)
-//                    .override(88, 88) // << 여기
-//                    .into(object :
-//                        com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>() {
-//                        override fun onResourceReady(
-//                            resource: android.graphics.Bitmap,
-//                            transition: com.bumptech.glide.request.transition.Transition<in android.graphics.Bitmap>?
-//                        ) {
-//                            val overlayImage = OverlayImage.fromBitmap(resource)
-//                            naverMap.locationOverlay.icon = overlayImage
-//                        }
-//
-//                        override fun onLoadCleared(placeholder: android.graphics.drawable.Drawable?) {}
-//                    })
             }
         }
     }
@@ -722,14 +706,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.textMarkerAddress.text = markerData.address ?: "주소 없음"
         binding.textMarkerDistance.text = ""
 
-        Glide.with(this).load(markerData.image).placeholder(R.drawable.ic_default_profile)
-            .error(R.drawable.ic_default_profile).into(binding.imageMarker)
+        if(markerData.image != null && markerData.image != "") {
+            binding.imageMarker.visibility = View.VISIBLE
+            Glide.with(this).load(markerData.image).error(R.drawable.ic_default_profile).into(binding.imageMarker)
+        } else {
+            binding.imageMarker.visibility = View.GONE
+        }
     }
 
     private fun moveCameraToRoute() {
         val boundsBuilder = LatLngBounds.Builder()
 
-        UserStateData.getMyLatLng()?.let { boundsBuilder.include(it) }
+        UserStateData.getMyLatLng().let { boundsBuilder.include(it) }
         waypoints.forEach { waypoint ->
             waypoint.lat?.toDoubleOrNull()?.let { lat ->
                 waypoint.lot?.toDoubleOrNull()?.let { lot ->
