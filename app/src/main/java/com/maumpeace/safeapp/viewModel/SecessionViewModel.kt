@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.maumpeace.safeapp.model.LogoutData
-import com.maumpeace.safeapp.repository.LogoutRepository
+import com.maumpeace.safeapp.model.SecessionData
+import com.maumpeace.safeapp.repository.SecessionRepository
 import com.maumpeace.safeapp.util.GlobalApplication
 import com.maumpeace.safeapp.util.HttpErrorHandler
 import com.maumpeace.safeapp.util.TokenManager
@@ -15,34 +15,31 @@ import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
-class LogoutViewModel @Inject constructor(
-    private val logoutRepository: LogoutRepository
+class SecessionViewModel @Inject constructor(
+    private val secessionRepository: SecessionRepository
 ) : ViewModel() {
 
     // 로그인 결과
-    private val _logoutData = MutableLiveData<LogoutData?>()
-    val logoutData: LiveData<LogoutData?> get() = _logoutData
+    private val _secessionData = MutableLiveData<SecessionData?>()
+    val secessionData: LiveData<SecessionData?> get() = _secessionData
 
     // 에러 메시지 전달용
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
 
-    /**
-     * 🔐 카카오 로그아웃 처리
-     */
-    fun logout(refreshToken: String) {
-        _logoutData.value = null
+    fun secession() {
+        _secessionData.value = null
         _errorMessage.value = null
 
         viewModelScope.launch {
             try {
-                val result = logoutRepository.logout(refreshToken)
+                val result = secessionRepository.secession()
 
                 if (result.success) {
                     TokenManager.clearAllTokens(GlobalApplication.INSTANCE)
-                    _logoutData.postValue(result)
+                    _secessionData.postValue(result)
                 } else {
-                    _errorMessage.postValue("로그아웃 실패: 서버 응답 실패")
+                    _errorMessage.postValue("회원탈퇴 실패: 서버 응답 실패")
                 }
 
             } catch (e: HttpException) {

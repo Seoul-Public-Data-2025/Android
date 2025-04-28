@@ -36,4 +36,6 @@
     <string name="text_32">도착지를 지정해주세요.</string>
     <string name="text_33">종료</string>
     <string name="text_34">앱을 종료하시겠습니까?</string>
+    <string name="text_35">로그아웃 하시겠습니까?</string>
+    <string name="text_36">회원탈퇴 하시겠습니까?</string>
 </resources>

@@ -3,6 +3,7 @@ package com.maumpeace.safeapp.network
 import com.maumpeace.safeapp.BuildConfig
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.repository.LogoutRepository
+import com.maumpeace.safeapp.repository.SecessionRepository
 import com.maumpeace.safeapp.util.GlobalApplication
 import com.maumpeace.safeapp.util.TokenManager
 import dagger.Module
@@ -95,6 +96,15 @@ object AppModule {
     @Singleton
     fun provideLogoutRepository(apiService: ApiService): LogoutRepository {
         return LogoutRepository(apiService)
+    }
+
+    /**
+     * SecessionRepository 주입
+     */
+    @Provides
+    @Singleton
+    fun provideSecessionRepository(apiService: ApiService): SecessionRepository {
+        return SecessionRepository(apiService)
     }
 
     /**

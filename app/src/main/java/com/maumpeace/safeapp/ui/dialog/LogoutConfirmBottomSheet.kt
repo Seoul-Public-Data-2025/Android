@@ -6,13 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.maumpeace.safeapp.R
-import com.maumpeace.safeapp.databinding.DialogExitConfirmBinding
+import com.maumpeace.safeapp.databinding.DialogLogoutConfirmBinding
 
-class ExitConfirmBottomSheet(
-    private val onExitConfirmed: () -> Unit
+class LogoutConfirmBottomSheet(
+    private val onLogoutConfirmed: () -> Unit
 ) : BottomSheetDialogFragment() {
 
-    private var _binding: DialogExitConfirmBinding? = null
+    private var _binding: DialogLogoutConfirmBinding? = null
     private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +23,7 @@ class ExitConfirmBottomSheet(
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = DialogExitConfirmBinding.inflate(inflater, container, false)
+        _binding = DialogLogoutConfirmBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -36,7 +36,7 @@ class ExitConfirmBottomSheet(
 
         binding.btnExit.setOnClickListener {
             dismiss()
-            onExitConfirmed()
+            onLogoutConfirmed()
         }
     }
 

@@ -3,7 +3,9 @@ package com.maumpeace.safeapp.network
 import com.maumpeace.safeapp.model.*
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.POST
 
 /**
@@ -58,4 +60,14 @@ interface ApiService {
      */
     @GET("display-icon/")
     suspend fun mapMarker(): MapMarkerData
+
+    /**
+     * 회원탈퇴 요청
+     */
+    @HTTP(
+        method = "DELETE",
+        path = "user/",
+        hasBody = true
+    )
+    suspend fun secession(): SecessionData
 }

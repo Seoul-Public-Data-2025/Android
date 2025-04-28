@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.webkit.CookieManager
+import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -60,8 +61,22 @@ class WebActivity : AppCompatActivity() {
         settings.builtInZoomControls = true
         settings.defaultTextEncodingName = "UTF-8"
 
+        webView.webChromeClient = WebChromeClient()
+
+        webView.settings.apply {
+            domStorageEnabled = true // 로컬 스토리지 사용 허용
+            databaseEnabled = true // 데이터베이스 저장 허용
+            javaScriptCanOpenWindowsAutomatically = true // JS로 새 창 열기 허용
+        }
+
+        webView.settings.userAgentString =
+            webView.settings.userAgentString.replace("; wv", "") // WebView 표시 제거 (필요시)
+
         webView.webViewClient = WebViewClient() //클릭 시 새창 뜨지 않게
         webView.webViewClient = WebViewClientClass()
+
+        webImg.webViewClient = WebViewClient() //클릭 시 새창 뜨지 않게
+        webImg.webViewClient = WebViewClientClass()
 
         //setup cache
         /*
@@ -99,15 +114,12 @@ class WebActivity : AppCompatActivity() {
 
         backBtn.setOnClickListener {
             finish()
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_right)
         }
-
-        type = intent.getStringExtra("fetchHomeBannerListType")
 
         when (intent.getIntExtra("type", -1)) {
             1 -> {
                 webTitle.text = "공지사항"
-                webView.loadUrl("https://www.notion.so/1e02af92761081319f16c4cc3194ff5d?pvs=4")
+                webView.loadUrl("https://www.notion.so/1e02af92761081319f16c4cc3194ff5d")
             }
 
             2 -> {

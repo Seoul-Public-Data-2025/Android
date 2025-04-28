@@ -14,9 +14,12 @@ import com.bumptech.glide.Glide
 import com.kakao.sdk.user.UserApiClient
 import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.FragmentSettingsBinding
+import com.maumpeace.safeapp.ui.dialog.LogoutConfirmBottomSheet
+import com.maumpeace.safeapp.ui.dialog.SecessionConfirmBottomSheet
 import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.util.TokenManager
 import com.maumpeace.safeapp.viewModel.LogoutViewModel
+import com.maumpeace.safeapp.viewModel.SecessionViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -30,6 +33,7 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private val logoutViewModel: LogoutViewModel by viewModels()
+    private val secessionViewModel: SecessionViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -64,7 +68,76 @@ class SettingsFragment : Fragment() {
 
         // 🔐 로그아웃 클릭 리스너 설정
         binding.llLogout.setOnClickListener {
+            showExitConfirmDialog()
+        }
+
+        // 회원탈퇴
+        binding.tvSecession.setOnClickListener {
+            showSecessionConfirmDialog()
+        }
+    }
+
+    private fun showExitConfirmDialog() {
+        val logoutDialog = parentFragmentManager.findFragmentByTag("LogoutConfirmDialog")
+        if (logoutDialog != null && logoutDialog.isVisible) {
+            // 이미 팝업이 떠있으면 새로 띄우지 않는다
+            return
+        }
+
+        val dialog = LogoutConfirmBottomSheet {
             performLogout()
+        }
+        dialog.show(parentFragmentManager, "LogoutConfirmDialog")
+    }
+
+    private fun showSecessionConfirmDialog() {
+        val secessionDialog = parentFragmentManager.findFragmentByTag("SecessionConfirmDialog")
+        if (secessionDialog != null && secessionDialog.isVisible) {
+            // 이미 팝업이 떠있으면 새로 띄우지 않는다
+            return
+        }
+
+        val dialog = SecessionConfirmBottomSheet {
+            performSecession()
+        }
+        dialog.show(parentFragmentManager, "SecessionConfirmDialog")
+    }
+
+    private fun performSecession() {
+        secessionViewModel.secession()
+        secessionViewModel.secessionData.observe(viewLifecycleOwner) { secessionData ->
+            // 회원탈퇴 성공 처리
+            secessionData?.let {
+                UserApiClient.instance.logout { error ->
+                    if (error != null) {
+                        Toast.makeText(
+                            requireContext(),
+                            "회원탈퇴 실패: ${error.localizedMessage}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        UserApiClient.instance.unlink {
+                            // 🔄 SharedPreferences 초기화
+                            requireContext().getSharedPreferences(
+                                "auth", AppCompatActivity.MODE_PRIVATE
+                            ).edit { clear() }
+
+                            // LoginActivity로 이동
+                            val intent = Intent(requireContext(), LoginActivity::class.java)
+                            intent.flags =
+                                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            Toast.makeText(requireContext(), "서비스를 이용해주셔서 감사합니다", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
+
+        secessionViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Timber.tag("error: ").e(it)
+            }
         }
     }
 

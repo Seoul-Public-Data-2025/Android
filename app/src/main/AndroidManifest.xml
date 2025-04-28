@@ -36,11 +36,7 @@
         <activity
             android:name=".ui.settings.WebActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-            </intent-filter>
-        </activity>
+            android:screenOrientation="portrait"/>
         <!-- 스플래시 화면 -->
         <activity
             android:name=".ui.splash.SplashActivity"

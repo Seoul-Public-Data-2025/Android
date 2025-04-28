@@ -13,15 +13,15 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:gravity="center"
-        android:text="@string/text_34"
-        android:textColor="@color/black"
+        android:text="@string/text_36"
+        android:textColor="@color/black_1e1f1f"
         android:textSize="18dp"
         android:textStyle="normal"
         android:typeface="normal"
         tools:ignore="SpUsage" />
 
     <TextView
-        android:id="@+id/btnExit"
+        android:id="@+id/btnSecession"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
@@ -29,7 +29,7 @@
         android:backgroundTint="@color/red_f55b63"
         android:gravity="center"
         android:paddingVertical="8dp"
-        android:text="@string/text_33"
+        android:text="@string/text_25"
         android:textColor="@android:color/white"
         android:textSize="16dp"
         android:textStyle="normal"
