@@ -3,7 +3,6 @@ package com.maumpeace.safeapp.network
 import com.maumpeace.safeapp.model.*
 import retrofit2.Call
 import retrofit2.http.Body
-import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.POST
@@ -70,4 +69,16 @@ interface ApiService {
         hasBody = true
     )
     suspend fun secession(): SecessionData
+
+    /**
+     * 알람 요청
+     */
+    @HTTP(
+        method = "PATCH",
+        path = "user/",
+        hasBody = true
+    )
+    suspend fun alarm(
+        @Body fetchAlarmData: FetchAlarmData
+    ): AlarmData
 }

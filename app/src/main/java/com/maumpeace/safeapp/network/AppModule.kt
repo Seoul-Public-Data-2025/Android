@@ -1,6 +1,7 @@
 package com.maumpeace.safeapp.network
 
 import com.maumpeace.safeapp.BuildConfig
+import com.maumpeace.safeapp.repository.AlarmRepository
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.repository.LogoutRepository
 import com.maumpeace.safeapp.repository.SecessionRepository
@@ -105,6 +106,15 @@ object AppModule {
     @Singleton
     fun provideSecessionRepository(apiService: ApiService): SecessionRepository {
         return SecessionRepository(apiService)
+    }
+
+    /**
+     * AlarmRepository 주입
+     */
+    @Provides
+    @Singleton
+    fun provideAlarmRepository(apiService: ApiService): AlarmRepository {
+        return AlarmRepository(apiService)
     }
 
     /**
