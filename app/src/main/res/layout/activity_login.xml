@@ -11,8 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:contentDescription="@string/iv"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_bg_login" />
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_bg_splash" />
 
     <ImageView
         android:id="@+id/btn_kakao_login"
