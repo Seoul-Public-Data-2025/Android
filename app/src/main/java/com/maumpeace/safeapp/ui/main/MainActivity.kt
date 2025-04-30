@@ -1,10 +1,6 @@
 package com.maumpeace.safeapp.ui.main
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -12,8 +8,6 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.activity.addCallback
-import androidx.annotation.RequiresPermission
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -32,7 +26,6 @@ import com.maumpeace.safeapp.ui.base.BaseActivity
 import com.maumpeace.safeapp.ui.dialog.ExitConfirmBottomSheet
 import com.maumpeace.safeapp.ui.map.MapFragment
 import com.maumpeace.safeapp.ui.settings.SettingsFragment
-import com.maumpeace.safeapp.ui.splash.SplashActivity
 import com.maumpeace.safeapp.util.PushConstants
 import com.maumpeace.safeapp.util.PushEventBus
 import com.maumpeace.safeapp.util.PushHandler
@@ -126,17 +119,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handlePushType(type: String, id: String) {
         when (type) {
             "regist" -> {
-                Toast.makeText(this, "regist ID $id 로 이동", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, "regist ID $id 로 이동", Toast.LENGTH_SHORT).show()
                 // TODO: 공지 화면 이동 로직 삽입
             }
 
             "delete" -> {
-                Toast.makeText(this, "delete ID $id 로 이동", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, "delete ID $id 로 이동", Toast.LENGTH_SHORT).show()
                 // TODO: 채팅방 화면 이동
             }
 
             else -> {
-                Toast.makeText(this, "알 수 없는 알림 타입", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this, "알 수 없는 알림 타입", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -177,22 +170,33 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }.commit()
     }
 
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     private fun startLocationUpdates() {
-        if (!hasLocationPermission()) return
+        if (ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
 
-        val locationRequest = createLocationRequest()
-        val locationClient = LocationServices.getFusedLocationProviderClient(this)
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY, 1000
+        ).apply {
+            setMinUpdateDistanceMeters(500F)
+            setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
+            setWaitForAccurateLocation(true)
+        }.build()
 
-        locationClient.lastLocation.addOnSuccessListener { location ->
+        LocationServices.getFusedLocationProviderClient(this).lastLocation.addOnSuccessListener { location ->
             location?.let {
                 UserStateData.setMyLatLng(LatLng(it.latitude, it.longitude))
             }
         }
 
-        locationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+        LocationServices.getFusedLocationProviderClient(this)
+            .requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
-
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
@@ -246,35 +250,5 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             finish()
         }
         dialog.show(supportFragmentManager, "ExitConfirmDialog")
-    }
-
-    private fun showSystemNotification(title: String, body: String, type: String?, id: String?) {
-        val channelId = "maum_channel"
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val channel = NotificationChannel(channelId, "SafeApp 알림", NotificationManager.IMPORTANCE_HIGH)
-        notificationManager.createNotificationChannel(channel)
-
-        val intent = Intent(this, SplashActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(PushConstants.PUSH_TYPE, type)
-            putExtra(PushConstants.PUSH_ID, id)
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher_round)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-            .build()
-
-        val notificationId = (System.nanoTime() % Int.MAX_VALUE).toInt()
-        notificationManager.notify(notificationId, notification)
     }
 }

@@ -115,13 +115,13 @@ class SafeAppFirebaseMessagingService : FirebaseMessagingService() {
             when (type) {
                 "regist" -> {
                     // 예: 공지사항 상세 Fragment 로 이동
-                    Toast.makeText(this, "regist ID $id 로 이동", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(this, "regist ID $id 로 이동", Toast.LENGTH_SHORT).show()
 
                     // 실제로는 Fragment 전환 또는 화면 이동 코드 실행
                 }
 
                 "delete" -> {
-                    Toast.makeText(this, "delete ID $id 로 이동", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(this, "delete ID $id 로 이동", Toast.LENGTH_SHORT).show()
                 }
 
                 // 기타 케이스
