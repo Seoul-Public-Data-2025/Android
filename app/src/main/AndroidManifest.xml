@@ -53,6 +53,7 @@
             android:screenOrientation="portrait" /> <!-- 메인 화면 -->
         <activity
             android:name=".ui.main.MainActivity"
+            android:launchMode="singleTop"
             android:exported="true"
             android:screenOrientation="portrait" /> <!-- 카카오 인증 액티비티 -->
         <activity

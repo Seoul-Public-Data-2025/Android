@@ -51,23 +51,30 @@ class SplashActivity : AppCompatActivity() {
         }, 2000)
     }
 
-    private fun proceedToNextScreen() {
-        val isLoginSuccess =
-            getSharedPreferences("auth", MODE_PRIVATE).getBoolean("isLoginSuccess", false)
+    private fun createNextIntent(): Intent {
+        val isLoginSuccess = getSharedPreferences("auth", MODE_PRIVATE)
+            .getBoolean("isLoginSuccess", false)
         val accessToken = TokenManager.getAccessToken(this)
 
-        val nextIntent = if (isLoginSuccess && !accessToken.isNullOrBlank() && AuthApiClient.instance.hasToken()) {
+        val intent = if (isLoginSuccess && !accessToken.isNullOrBlank()
+            && AuthApiClient.instance.hasToken()) {
             Intent(this, MainActivity::class.java)
         } else {
             Intent(this, LoginActivity::class.java)
         }
 
-        // 🎯 반절 올라가면서 서서히 사라지기
+        intent.putExtras(getIntent().extras ?: Bundle())
+        return intent
+    }
+
+    private fun proceedToNextScreen() {
+        val nextIntent = createNextIntent()
+
         binding.root.animate()
-            .translationY(-binding.root.height * 0.25f) // 반절만 위로 이동
-            .alpha(0f) // 동시에 투명해지기
-            .setInterpolator(AccelerateInterpolator()) // 점점 빨라지는 느낌
-            .setDuration(700) // 0.7초 정도로 자연스럽게
+            .translationY(-binding.root.height * 0.25f)
+            .alpha(0f)
+            .setInterpolator(AccelerateInterpolator())
+            .setDuration(700)
             .withEndAction {
                 startActivity(nextIntent)
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
