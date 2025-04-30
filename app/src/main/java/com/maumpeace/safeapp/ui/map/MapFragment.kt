@@ -820,7 +820,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 val pathOverlay = PathOverlay().apply {
                     this.coords = coords
                     color = resources.getColor(android.R.color.transparent, null)
-                    passedColor = resources.getColor(R.color.red_f55b63, null)
+                    passedColor = resources.getColor(R.color.orange_ffaa62, null)
                     outlineWidth = 5
                     width = 15
                     progress = 0.0

@@ -21,9 +21,9 @@
         android:layout_marginTop="?attr/actionBarSize"
         android:background="@color/white"
         app:tabGravity="fill"
-        app:tabIndicatorColor="@color/blue_283081"
+        app:tabIndicatorColor="@color/blue_7dc2fb"
         app:tabMode="fixed"
-        app:tabSelectedTextColor="@color/blue_283081"
+        app:tabSelectedTextColor="@color/blue_7dc2fb"
         app:tabTextColor="@color/black_1e1f1f" />
 
     <!-- ViewPager2: TabLayout 아래에서 시작 -->

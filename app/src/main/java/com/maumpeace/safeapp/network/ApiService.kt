@@ -81,4 +81,24 @@ interface ApiService {
     suspend fun alarm(
         @Body fetchAlarmData: FetchAlarmData
     ): AlarmData
+
+    /*
+    * 관계 생성
+    */
+    @POST("relation-request/")
+    suspend fun createRelation(
+        @Body fetchCreateRelationData: FetchCreateRelationData
+    ): CreateRelationData
+
+    /*
+    * 보호자 리스트 조회
+    */
+    @GET("relation-parent-list/")
+    suspend fun relationGuardianList(): RelationGuardianListData
+
+    /*
+    * 자녀 리스트 조회
+    */
+    @GET("relation-child-list/")
+    suspend fun relationChildList(): RelationChildListData
 }

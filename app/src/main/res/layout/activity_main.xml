@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/text_02"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="12dp"
             tools:ignore="SpUsage" />
     </LinearLayout>
