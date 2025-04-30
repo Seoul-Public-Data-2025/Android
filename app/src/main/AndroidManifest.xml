@@ -34,6 +34,10 @@
         tools:ignore="DiscouragedApi,LockedOrientationActivity"
         tools:targetApi="33">
         <activity
+            android:name=".ui.role.RoleTabActivity"
+            android:exported="true"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".ui.settings.WebActivity"
             android:exported="true"
             android:screenOrientation="portrait" /> <!-- 스플래시 화면 -->
@@ -53,8 +57,8 @@
             android:screenOrientation="portrait" /> <!-- 메인 화면 -->
         <activity
             android:name=".ui.main.MainActivity"
-            android:launchMode="singleTop"
             android:exported="true"
+            android:launchMode="singleTop"
             android:screenOrientation="portrait" /> <!-- 카카오 인증 액티비티 -->
         <activity
             android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
