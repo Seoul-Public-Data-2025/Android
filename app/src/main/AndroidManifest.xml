@@ -36,8 +36,7 @@
         <activity
             android:name=".ui.settings.WebActivity"
             android:exported="true"
-            android:screenOrientation="portrait"/>
-        <!-- 스플래시 화면 -->
+            android:screenOrientation="portrait" /> <!-- 스플래시 화면 -->
         <activity
             android:name=".ui.splash.SplashActivity"
             android:exported="true"
@@ -77,6 +76,14 @@
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
             android:value="${naver_client_id}" />
+
+        <service
+            android:name=".service.SafeAppFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

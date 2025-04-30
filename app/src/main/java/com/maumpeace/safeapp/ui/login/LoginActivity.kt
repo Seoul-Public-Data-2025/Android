@@ -119,7 +119,10 @@ class LoginActivity : AppCompatActivity() {
             val fcmToken = task.result ?: ""
             Timber.tag("FCM").d("FCM 토큰: $fcmToken")
 
-            // ✅ ViewModel 로 전달
+            // ✅ 저장: 최신 토큰 캐싱
+            TokenManager.saveFcmToken(this, fcmToken)
+
+            // ✅ ViewModel로 전달
             loginViewModel.loginWithKakao(
                 kakaoAccessToken = accessToken,
                 email = email,

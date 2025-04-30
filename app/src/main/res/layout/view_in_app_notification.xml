@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/inAppNotificationBanner"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/blue_283081"
+    android:elevation="8dp"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:visibility="gone">
+
+    <TextView
+        android:id="@+id/tvNotificationTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@android:color/white"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:typeface="normal"
+        tools:ignore="SpUsage" />
+
+    <TextView
+        android:id="@+id/tvNotificationBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@android:color/white"
+        android:textSize="14dp"
+        android:textStyle="normal"
+        android:typeface="normal"
+        tools:ignore="SpUsage" />
+</LinearLayout>

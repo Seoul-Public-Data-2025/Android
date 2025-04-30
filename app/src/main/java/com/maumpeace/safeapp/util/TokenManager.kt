@@ -15,6 +15,18 @@ object TokenManager {
     private const val KEY_REFRESH_TOKEN = "refresh_token"
     private const val PROFILE = "profile"
     private const val NICKNAME = "nickname"
+    private const val KEY_FCM_TOKEN = "fcmToken"
+
+    fun saveFcmToken(context: Context, token: String) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit {
+            putString(KEY_FCM_TOKEN, token)
+        }
+    }
+
+    fun getFcmToken(context: Context): String? {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_FCM_TOKEN, null)
+    }
 
     fun saveHashedPhoneNumber(context: Context, hashedPhoneNumber: String) {
         getPrefs(context).edit {
