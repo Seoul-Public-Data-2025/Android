@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/ll_recyclerWaypoint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_white_rd_8"
+        android:elevation="6dp"
+        android:orientation="vertical"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_331e1f1f_rd_100"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="@string/text_29"
+            android:textColor="@color/white"
+            android:textSize="12dp"
+            android:textStyle="bold"
+            android:typeface="normal"
+            tools:ignore="SpUsage" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerWaypoint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:listitem="@layout/item_waypoint" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_331e1f1f_rd_100"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp">
+
+            <TextView
+                android:id="@+id/tv_destination"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginHorizontal="8dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:text="@string/text_32"
+                android:textColor="@color/white"
+                android:textSize="12dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
+
+            <ImageView
+                android:id="@+id/btn_remove_destination"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/iv"
+                android:src="@drawable/ic_waypoint_remove"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/btn_cancel_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_f55b63_rd_100"
+                android:backgroundTint="@color/red_f55b63"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/text_30"
+                android:textColor="@android:color/white"
+                android:textSize="14dp"
+                tools:ignore="SpUsage" />
+
+            <TextView
+                android:id="@+id/btn_route"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginStart="4dp"
+                android:background="@drawable/rd_283081_16"
+                android:backgroundTint="@color/blue_283081"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/text_31"
+                android:textColor="@android:color/white"
+                android:textSize="14dp"
+                tools:ignore="SpUsage" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/iv_my_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:background="@drawable/bg_white_rd_8"
+        android:contentDescription="@string/iv"
+        android:elevation="5dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_map_my_location"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_recyclerWaypoint" />
+
+    <com.naver.maps.map.MapView
+        android:id="@+id/map_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/option_bottom_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bottom_sheet_radius"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="88dp"
+            app:behavior_hideable="false"
+            app:behavior_peekHeight="0dp"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="5dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_331e1f1f_rd_100" />
+
+            <!-- 내부 항목 구성은 여기에 추가 예정 -->
+            <!-- 표시 카테고리 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/text_03"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
+
+            <GridLayout
+                android:id="@+id/grid_display"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="4">
+
+                <!-- 경찰서 -->
+                <LinearLayout
+                    android:id="@+id/ll_police"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:id="@+id/iv_police"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
+                        android:src="@drawable/ic_police" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_06"
+                        android:textColor="@color/black_1e1f1f"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
+                </LinearLayout>
+
+                <!-- CCTV -->
+                <LinearLayout
+                    android:id="@+id/ll_cctv"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:id="@+id/iv_cctv"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
+                        android:src="@drawable/ic_cctv" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_04"
+                        android:textColor="@color/black_1e1f1f"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
+                </LinearLayout>
+
+                <!-- 안전 시설물 -->
+                <LinearLayout
+                    android:id="@+id/ll_safety_light"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:id="@+id/iv_safety_light"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
+                        android:src="@drawable/ic_safety_light" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_05"
+                        android:textColor="@color/black_1e1f1f"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
+                </LinearLayout>
+
+                <!-- 안심지킴이집 -->
+                <LinearLayout
+                    android:id="@+id/ll_safety_facility"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:id="@+id/iv_safety_facility"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
+                        android:src="@drawable/ic_safety_facility" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_07"
+                        android:textColor="@color/black_1e1f1f"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
+                </LinearLayout>
+            </GridLayout>
+
+            <!-- 서비스 카테고리 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/text_08"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="16dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                android:visibility="gone"
+                tools:ignore="SpUsage" />
+
+            <GridLayout
+                android:id="@+id/grid_service"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="56dp"
+                android:columnCount="4"
+                android:visibility="gone">
+
+                <!-- 안전경로 안내 -->
+                <LinearLayout
+                    android:id="@+id/ll_safety_directions"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:contentDescription="@string/iv"
+                        android:src="@drawable/ic_safety_directions" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_09"
+                        android:textColor="@color/black_1e1f1f"
+                        android:textSize="14dp"
+                        android:textStyle="normal"
+                        android:typeface="normal"
+                        tools:ignore="SpUsage" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UselessLeaf" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UselessLeaf" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnSpan="1"
+                    android:layout_columnWeight="1"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    tools:ignore="UselessLeaf" />
+
+            </GridLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/marker_info_bottom_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_bottom_sheet_radius"
+            android:orientation="vertical"
+            android:paddingBottom="60dp"
+            android:visibility="gone"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="5dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_331e1f1f_rd_100" />
+
+            <TextView
+                android:id="@+id/text_marker_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="18dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage"
+                tools:text="장소명" />
+
+            <TextView
+                android:id="@+id/text_marker_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="14dp"
+                android:typeface="normal"
+                tools:ignore="SpUsage"
+                tools:text="주소" />
+
+            <TextView
+                android:id="@+id/text_marker_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/black_1e1f1f"
+                android:textSize="14dp"
+                android:typeface="normal"
+                tools:ignore="SpUsage"
+                tools:text="거리" />
+
+            <LinearLayout
+                android:id="@+id/ll_waypoint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btn_add_waypoint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_283081_rd_100"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="@string/text_27"
+                    android:textColor="@color/white"
+                    android:textSize="12dp"
+                    tools:ignore="SpUsage" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/btn_route_designation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_283081_rd_100"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="8dp"
+                    android:text="@string/text_28"
+                    android:textColor="@color/white"
+                    android:textSize="12dp"
+                    tools:ignore="SpUsage" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/image_marker"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_image_round"
+                android:clipToOutline="true"
+                android:contentDescription="@string/iv"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_default_profile"
+                tools:targetApi="31" />
+
+        </LinearLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <ProgressBar
+        android:id="@+id/progress_loading"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 🗺 지도 및 본문 컨테이너 -->
+    <FrameLayout
+        android:id="@+id/map_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- 🚨 긴급 알림 오버레이 -->
+        <LinearLayout
+            android:id="@+id/emergency_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/black_80000000"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone"
+            tools:ignore="UselessParent">
+
+            <TextView
+                android:id="@+id/text_emergency_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="@string/text_10"
+                android:textColor="@android:color/holo_red_dark"
+                android:textSize="32dp"
+                android:textStyle="bold"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
+
+            <TextView
+                android:id="@+id/text_emergency_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:text="@string/text_11"
+                android:textColor="@android:color/white"
+                android:textSize="24dp"
+                android:textStyle="normal"
+                android:typeface="normal"
+                tools:ignore="SpUsage" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_emergency_cancel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:text="@string/text_12"
+                    android:textColor="@android:color/white"
+                    android:textSize="16dp"
+                    android:textStyle="normal"
+                    android:typeface="normal"
+                    tools:ignore="SpUsage" />
+
+                <Space
+                    android:layout_width="16dp"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/btn_emergency_confirm"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@android:color/holo_red_dark"
+                    android:text="@string/text_13"
+                    android:textColor="@android:color/white"
+                    android:textSize="16dp"
+                    android:textStyle="normal"
+                    android:typeface="normal"
+                    tools:ignore="SpUsage" />
+            </LinearLayout>
+        </LinearLayout>
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "412497135006",
+    "project_id": "maumpeace-fd879",
+    "storage_bucket": "maumpeace-fd879.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412497135006:android:640b6268d0910433f4428f",
+        "android_client_info": {
+          "package_name": "com.maumpeace.safeapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBn98DbEJyz3g0Li6Nlnt3iS-9dz3F-Gp4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

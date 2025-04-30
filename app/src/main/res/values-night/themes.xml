@@ -14,4 +14,29 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="TransparentBottomSheetDialog" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="TransparentBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="Theme.SafeApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- 기본 배경 설정 -->
+        <item name="android:windowBackground">@drawable/ic_bg_splash</item>
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item> <!-- ✅ 여기! -->
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.App.BottomSheetDialog</item>
+    </style>
+
+    <style name="ShapeAppearanceOverlay.App.BottomSheetDialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeTopRight">16dp</item>
+    </style>
+
 </resources>
