@@ -62,7 +62,6 @@ class LoginActivity : AppCompatActivity() {
         val permissions = mutableListOf(
             Manifest.permission.READ_PHONE_NUMBERS,
             Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.READ_SMS
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
