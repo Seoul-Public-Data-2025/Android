@@ -17,6 +17,7 @@ import com.maumpeace.safeapp.databinding.FragmentSettingsBinding
 import com.maumpeace.safeapp.ui.dialog.LogoutConfirmBottomSheet
 import com.maumpeace.safeapp.ui.dialog.SecessionConfirmBottomSheet
 import com.maumpeace.safeapp.ui.login.LoginActivity
+import com.maumpeace.safeapp.ui.role.RoleTabActivity
 import com.maumpeace.safeapp.util.TokenManager
 import com.maumpeace.safeapp.viewModel.AlarmViewModel
 import com.maumpeace.safeapp.viewModel.LogoutViewModel
@@ -54,6 +55,10 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
+        binding.llRegister.setOnClickListener {
+            startActivity(Intent(requireContext(), RoleTabActivity::class.java))
+        }
+
         binding.llNoti.setOnClickListener {
             startActivity(Intent(requireContext(), WebActivity::class.java).putExtra("type", 1))
         }
@@ -102,24 +107,27 @@ class SettingsFragment : Fragment() {
     private fun showExitConfirmDialog() {
         val logoutDialog = parentFragmentManager.findFragmentByTag("LogoutConfirmDialog")
         if (logoutDialog == null || !logoutDialog.isVisible) {
-            LogoutConfirmBottomSheet { performLogout() }
-                .show(parentFragmentManager, "LogoutConfirmDialog")
+            LogoutConfirmBottomSheet { performLogout() }.show(
+                    parentFragmentManager,
+                    "LogoutConfirmDialog"
+                )
         }
     }
 
     private fun showSecessionConfirmDialog() {
         val secessionDialog = parentFragmentManager.findFragmentByTag("SecessionConfirmDialog")
         if (secessionDialog == null || !secessionDialog.isVisible) {
-            SecessionConfirmBottomSheet { performSecession() }
-                .show(parentFragmentManager, "SecessionConfirmDialog")
+            SecessionConfirmBottomSheet { performSecession() }.show(
+                    parentFragmentManager,
+                    "SecessionConfirmDialog"
+                )
         }
     }
 
     private fun performAlarm(notification: Boolean, hashedPhoneNumber: String) {
         alarmViewModel.alarm(notification, hashedPhoneNumber)
         alarmViewModel.alarmData.observe(viewLifecycleOwner) { alarmData ->
-            alarmData?.let {
-            }
+            alarmData?.let {}
         }
 
         alarmViewModel.errorMessage.observe(viewLifecycleOwner) { error ->
@@ -133,17 +141,27 @@ class SettingsFragment : Fragment() {
             secessionData?.let {
                 UserApiClient.instance.logout { error ->
                     if (error != null) {
-                        Toast.makeText(requireContext(), "회원탈퇴 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "회원탈퇴 실패: ${error.localizedMessage}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     } else {
                         UserApiClient.instance.unlink {
                             requireContext().getSharedPreferences(
                                 "auth", AppCompatActivity.MODE_PRIVATE
                             ).edit { clear() }
 
-                            startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            })
-                            Toast.makeText(requireContext(), "서비스를 이용해주셔서 감사합니다", Toast.LENGTH_SHORT).show()
+                            startActivity(
+                                Intent(
+                                    requireContext(), LoginActivity::class.java
+                                ).apply {
+                                    flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                })
+                            Toast.makeText(
+                                requireContext(), "서비스를 이용해주셔서 감사합니다", Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 }
@@ -162,16 +180,24 @@ class SettingsFragment : Fragment() {
             logoutData?.let {
                 UserApiClient.instance.logout { error ->
                     if (error != null) {
-                        Toast.makeText(requireContext(), "로그아웃 실패: ${error.localizedMessage}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            "로그아웃 실패: ${error.localizedMessage}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     } else {
                         UserApiClient.instance.unlink {
                             requireContext().getSharedPreferences(
                                 "auth", AppCompatActivity.MODE_PRIVATE
                             ).edit { clear() }
 
-                            startActivity(Intent(requireContext(), LoginActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            })
+                            startActivity(
+                                Intent(
+                                    requireContext(), LoginActivity::class.java
+                                ).apply {
+                                    flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                })
                         }
                     }
                 }

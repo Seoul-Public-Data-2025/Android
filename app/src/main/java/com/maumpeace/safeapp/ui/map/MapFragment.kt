@@ -110,25 +110,47 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         binding.btnAddWaypoint.setOnClickListener {
             if (waypoints.size >= 3) {
-                Toast.makeText(requireContext(), "경유지는 최대 3개까지 추가할 수 있습니다.", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(requireContext(), "경유지는 최대 3개까지 추가할 수 있습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             selectedMarkerData?.let { waypoint ->
+                // ✅ 도착지와 동일한지 확인
+                if (destination?.lat == waypoint.lat && destination?.lot == waypoint.lot) {
+                    Toast.makeText(requireContext(), "도착지로 지정된 장소는 경유지로 추가할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    return@let
+                }
+
+                // ✅ 이미 경유지로 추가된 경우
+                val alreadyAdded = waypoints.any { it.lat == waypoint.lat && it.lot == waypoint.lot }
+                if (alreadyAdded) {
+                    Toast.makeText(requireContext(), "이미 경유지로 추가된 장소입니다.", Toast.LENGTH_SHORT).show()
+                    return@let
+                }
+
                 waypoints.add(waypoint)
                 waypointAdapter.notifyItemInserted(waypoints.size - 1)
-
-                // 🆕 경유지 추가되었으면 RecyclerView 보이기
                 binding.llRecyclerWaypoint.visibility = View.VISIBLE
             }
         }
 
         binding.btnRouteDesignation.setOnClickListener {
             selectedMarkerData?.let { data ->
+                // ✅ 경유지로 이미 등록된 장소인지 확인
+                val isAlreadyWaypoint = waypoints.any { it.lat == data.lat && it.lot == data.lot }
+                if (isAlreadyWaypoint) {
+                    Toast.makeText(requireContext(), "이미 경유지로 추가된 장소입니다.", Toast.LENGTH_SHORT).show()
+                    return@let
+                }
+
+                // ✅ 이미 도착지로 지정된 경우
+                if (destination?.lat == data.lat && destination?.lot == data.lot) {
+                    Toast.makeText(requireContext(), "이미 도착지로 지정된 장소입니다.", Toast.LENGTH_SHORT).show()
+                    return@let
+                }
+
                 destination = data
                 binding.tvDestination.text = "도착지: ${data.address}"
-
-                // 🆕 도착지 추가되었으면 RecyclerView 보이기
                 binding.llRecyclerWaypoint.visibility = View.VISIBLE
                 binding.btnRemoveDestination.visibility = View.VISIBLE
             }
@@ -790,13 +812,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun updateRoute() {
-        val currentLocation = UserStateData.getMyLatLng()
         val start = UserStateData.getMyLatLng()
-        val goal = destination ?: return
+        val goal = destination
+
+        if (start == null) {
+            requestUserLocationThenRoute()
+            return
+        }
+
+        if (goal == null || goal.lat.isNullOrBlank() || goal.lot.isNullOrBlank()) {
+            Toast.makeText(requireContext(), "도착지 정보가 없습니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val startParam = "${start.longitude},${start.latitude}"
         val goalParam = "${goal.lot},${goal.lat}"
-
         val waypointParam = waypoints.joinToString("|") { "${it.lot},${it.lat}" }
 
         val clientId = BuildConfig.NAVER_CLIENT_ID
@@ -820,7 +850,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 val pathOverlay = PathOverlay().apply {
                     this.coords = coords
                     color = resources.getColor(android.R.color.transparent, null)
-                    passedColor = resources.getColor(R.color.red_f55b63, null)
+                    passedColor = resources.getColor(R.color.orange_ffaa62, null)
                     outlineWidth = 5
                     width = 15
                     progress = 0.0
@@ -851,5 +881,24 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
 
         Timber.d("START: $startParam, GOAL: $goalParam, WAYPOINTS: $waypointParam")
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun requestUserLocationThenRoute() {
+        val fusedClient = LocationServices.getFusedLocationProviderClient(requireContext())
+
+        fusedClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                val userLatLng = LatLng(location.latitude, location.longitude)
+                UserStateData.setMyLatLng(userLatLng)
+
+                Timber.d("위치 재획득 성공: $userLatLng")
+                updateRoute() // ✅ 다시 경로 계산 시도
+            } else {
+                Toast.makeText(requireContext(), "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }.addOnFailureListener {
+            Toast.makeText(requireContext(), "위치 요청 실패: ${it.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 }

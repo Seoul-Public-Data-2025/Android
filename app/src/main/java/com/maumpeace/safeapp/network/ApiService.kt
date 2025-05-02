@@ -1,6 +1,23 @@
 package com.maumpeace.safeapp.network
 
-import com.maumpeace.safeapp.model.*
+import com.maumpeace.safeapp.model.AlarmData
+import com.maumpeace.safeapp.model.CreateRelationData
+import com.maumpeace.safeapp.model.FetchAlarmData
+import com.maumpeace.safeapp.model.FetchCreateRelationData
+import com.maumpeace.safeapp.model.FetchLoginData
+import com.maumpeace.safeapp.model.FetchLogoutData
+import com.maumpeace.safeapp.model.FetchRelationChildApproveData
+import com.maumpeace.safeapp.model.FetchRelationGuardianDeleteData
+import com.maumpeace.safeapp.model.FetchRelationResendData
+import com.maumpeace.safeapp.model.LoginData
+import com.maumpeace.safeapp.model.LogoutData
+import com.maumpeace.safeapp.model.MapMarkerData
+import com.maumpeace.safeapp.model.RelationChildApproveData
+import com.maumpeace.safeapp.model.RelationChildListData
+import com.maumpeace.safeapp.model.RelationGuardianDeleteData
+import com.maumpeace.safeapp.model.RelationGuardianListData
+import com.maumpeace.safeapp.model.RelationResendData
+import com.maumpeace.safeapp.model.SecessionData
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -64,9 +81,7 @@ interface ApiService {
      * 회원탈퇴 요청
      */
     @HTTP(
-        method = "DELETE",
-        path = "user/",
-        hasBody = true
+        method = "DELETE", path = "user/", hasBody = true
     )
     suspend fun secession(): SecessionData
 
@@ -74,11 +89,55 @@ interface ApiService {
      * 알람 요청
      */
     @HTTP(
-        method = "PATCH",
-        path = "user/",
-        hasBody = true
+        method = "PATCH", path = "user/", hasBody = true
     )
     suspend fun alarm(
         @Body fetchAlarmData: FetchAlarmData
     ): AlarmData
+
+    /*
+    * 관계 생성
+    */
+    @POST("relation-request/")
+    suspend fun createRelation(
+        @Body fetchCreateRelationData: FetchCreateRelationData
+    ): CreateRelationData
+
+    /*
+    * 보호자 리스트 조회
+    */
+    @GET("relation-parent-list/")
+    suspend fun relationGuardianList(): RelationGuardianListData
+
+    /*
+    * 자녀 리스트 조회
+    */
+    @GET("relation-child-list/")
+    suspend fun relationChildList(): RelationChildListData
+
+    /*
+    * 자녀 요청 수락
+    */
+    @POST("relation-approve/")
+    suspend fun relationChildApprove(
+        @Body fetchRelationChildApproveData: FetchRelationChildApproveData
+    ): RelationChildApproveData
+
+    /*
+    * 보호자 등록 노티 재발송
+    */
+    @POST("relation-resend/")
+    suspend fun relationResend(
+        @Body fetchRelationResendData: FetchRelationResendData
+    ): RelationResendData
+
+    /*
+    * 보호자 해지 요청
+    */
+    @HTTP(
+        method = "DELETE", path = "relation-delete/", hasBody = true
+    )
+    suspend fun relationGuardianDelete(
+        @Body fetchRelationGuardianDeleteData: FetchRelationGuardianDeleteData
+    ): RelationGuardianDeleteData
 }

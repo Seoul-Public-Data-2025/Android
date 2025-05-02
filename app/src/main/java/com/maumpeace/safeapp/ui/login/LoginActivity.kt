@@ -62,22 +62,30 @@ class LoginActivity : AppCompatActivity() {
         val permissions = mutableListOf(
             Manifest.permission.READ_PHONE_NUMBERS,
             Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.READ_SMS
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
-        val isGranted = permissions.all {
-            ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        val deniedPermissions = permissions.filter {
+            ActivityCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
-        if (!isGranted) {
-            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), 1234)
+        if (deniedPermissions.isNotEmpty()) {
+            // 설명이 필요한 권한이 있으면 사용자에게 Toast로 알림
+            if (deniedPermissions.any {
+                    ActivityCompat.shouldShowRequestPermissionRationale(this, it)
+                }
+            ) {
+                Toast.makeText(this, "로그인을 위해 권한이 필요합니다.", Toast.LENGTH_LONG).show()
+            }
+
+            ActivityCompat.requestPermissions(this, deniedPermissions.toTypedArray(), 1234)
             return
         }
 
+        // 모든 권한 허용 상태일 경우 로직 실행
         val telephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
         val phoneNumber = telephonyManager.line1Number
 
@@ -140,13 +148,28 @@ class LoginActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == 1234) {
+            val deniedPermanently = permissions.indices.any { i ->
+                grantResults[i] == PackageManager.PERMISSION_DENIED &&
+                        !ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[i])
+            }
+
+            if (deniedPermanently) {
+                Toast.makeText(this, "권한이 거부되었습니다. 설정에서 권한을 허용해주세요.", Toast.LENGTH_LONG).show()
+                // 설정 화면으로 이동 유도
+                val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = android.net.Uri.fromParts("package", packageName, null)
+                }
+                startActivity(intent)
+                return
+            }
+
+            // 알림 권한 저장
             val isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissions.indexOf(Manifest.permission.POST_NOTIFICATIONS).takeIf { it != -1 }
                     ?.let { grantResults[it] == PackageManager.PERMISSION_GRANTED } ?: false
             } else {
-                true // Android 12 이하는 기본 허용
+                true
             }
-
             TokenManager.saveAlarmPermission(this, isNotificationGranted)
 
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
@@ -155,7 +178,6 @@ class LoginActivity : AppCompatActivity() {
                 Timber.tag("PHONE_HASH").w("권한이 거부되어 전화번호를 수집할 수 없습니다.")
             }
         }
-
     }
 
     /**

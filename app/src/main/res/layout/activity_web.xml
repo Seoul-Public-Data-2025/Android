@@ -134,7 +134,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="1.5dp"
             android:layout_weight="1"
-            android:background="@color/blue_283081"
+            android:background="@color/blue_7dc2fb"
             android:gravity="center"
             android:paddingVertical="15dp"
             android:textColor="@color/white"

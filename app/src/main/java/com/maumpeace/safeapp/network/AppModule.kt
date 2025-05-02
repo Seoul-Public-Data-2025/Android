@@ -2,8 +2,14 @@ package com.maumpeace.safeapp.network
 
 import com.maumpeace.safeapp.BuildConfig
 import com.maumpeace.safeapp.repository.AlarmRepository
+import com.maumpeace.safeapp.repository.CreateRelationRepository
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.repository.LogoutRepository
+import com.maumpeace.safeapp.repository.RelationChildApproveRepository
+import com.maumpeace.safeapp.repository.RelationChildListRepository
+import com.maumpeace.safeapp.repository.RelationGuardianDeleteRepository
+import com.maumpeace.safeapp.repository.RelationGuardianListRepository
+import com.maumpeace.safeapp.repository.RelationResendRepository
 import com.maumpeace.safeapp.repository.SecessionRepository
 import com.maumpeace.safeapp.util.GlobalApplication
 import com.maumpeace.safeapp.util.TokenManager
@@ -53,10 +59,8 @@ object AppModule {
     @Singleton
     fun provideOkHttpClient(authInterceptor: Interceptor): OkHttpClient {
         val context = GlobalApplication.INSTANCE.applicationContext
-        return OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .authenticator(TokenAuthenticator(context))
-            .build()
+        return OkHttpClient.Builder().addInterceptor(authInterceptor)
+            .authenticator(TokenAuthenticator(context)).build()
     }
 
     /**
@@ -65,11 +69,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        return Retrofit.Builder().baseUrl(BASE_URL).client(client)
+            .addConverterFactory(GsonConverterFactory.create()).build()
     }
 
     /**
@@ -118,15 +119,67 @@ object AppModule {
     }
 
     /**
+     * 관계 생성 주입
+     */
+    @Provides
+    @Singleton
+    fun provideCreateRelationRepository(apiService: ApiService): CreateRelationRepository {
+        return CreateRelationRepository(apiService)
+    }
+
+    /**
+     * 보호자 리스트 조회
+     */
+    @Provides
+    @Singleton
+    fun provideRelationGuardianListRepository(apiService: ApiService): RelationGuardianListRepository {
+        return RelationGuardianListRepository(apiService)
+    }
+
+    /**
+     * 자녀 리스트 조회
+     */
+    @Provides
+    @Singleton
+    fun provideRelationChildListRepository(apiService: ApiService): RelationChildListRepository {
+        return RelationChildListRepository(apiService)
+    }
+
+    /**
+     * 자녀 수락 요청
+     */
+    @Provides
+    @Singleton
+    fun provideRelationChildApproveRepository(apiService: ApiService): RelationChildApproveRepository {
+        return RelationChildApproveRepository(apiService)
+    }
+
+    /**
+     * 보호자 등록 노티 재발송
+     */
+    @Provides
+    @Singleton
+    fun provideRelationResendRepository(apiService: ApiService): RelationResendRepository {
+        return RelationResendRepository(apiService)
+    }
+
+    /**
+     * 보호자 해지 요청
+     */
+    @Provides
+    @Singleton
+    fun provideRelationGuardianDeleteRepository(apiService: ApiService): RelationGuardianDeleteRepository {
+        return RelationGuardianDeleteRepository(apiService)
+    }
+
+    /**
      * 네이버 경로 API용 Retrofit 서비스 주입
      */
     @Provides
     @Singleton
     fun provideNaverDirectionsService(): NaverDirectionsService {
-        return Retrofit.Builder()
-            .baseUrl("https://maps.apigw.ntruss.com/map-direction/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        return Retrofit.Builder().baseUrl("https://maps.apigw.ntruss.com/map-direction/")
+            .addConverterFactory(GsonConverterFactory.create()).build()
             .create(NaverDirectionsService::class.java)
     }
 }
