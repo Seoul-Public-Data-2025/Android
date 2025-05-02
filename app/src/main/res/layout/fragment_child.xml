@@ -1,15 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".ui.role.ChildFragment">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_child_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp" />
+
     <TextView
+        android:id="@+id/tv_not_child_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:text="자녀 탭 화면"
-        android:textSize="20sp"/>
+        android:text="@string/text_41"
+        android:textColor="@color/blue_7dc2fb"
+        android:textSize="16dp"
+        android:textStyle="normal"
+        android:typeface="normal"
+        android:visibility="gone"
+        tools:ignore="SpUsage" />
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

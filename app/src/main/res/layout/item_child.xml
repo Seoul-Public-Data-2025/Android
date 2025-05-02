@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    android:paddingVertical="12dp">
+
+    <LinearLayout
+        android:id="@+id/btnContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_accept"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rd_7dc2fb_8"
+            android:padding="6dp"
+            android:text="@string/text_43"
+            android:textColor="@color/blue_7dc2fb"
+            android:textSize="14dp"
+            tools:ignore="SpUsage" />
+
+        <TextView
+            android:id="@+id/btn_reject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/rd_ffaa62_8"
+            android:padding="6dp"
+            android:text="@string/text_42"
+            android:textColor="@color/orange_ffaa62"
+            android:textSize="14dp"
+            tools:ignore="SpUsage" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:textColor="@color/black_1e1f1f"
+        android:textSize="16dp"
+        android:textStyle="bold"
+        android:typeface="normal"
+        tools:ignore="SpUsage"
+        tools:text="이름" />
+
+    <TextView
+        android:id="@+id/tvPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:textColor="@color/gray_d2d2d2"
+        android:textSize="14dp"
+        android:typeface="normal"
+        tools:ignore="SpUsage"
+        tools:text="010-0000-0000" />
+
+    <TextView
+        android:id="@+id/tv_role"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/blue_7dc2fb"
+        android:textSize="14dp"
+        android:typeface="normal"
+        android:visibility="gone"
+        tools:ignore="SpUsage"
+        tools:text="자녀" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="12dp"
+        android:background="@color/gray_d2d2d2" />
+</LinearLayout>

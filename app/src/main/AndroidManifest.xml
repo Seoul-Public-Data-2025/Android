@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
         android:name=".util.GlobalApplication"
@@ -71,7 +72,7 @@
 
                 <data
                     android:host="oauth"
-                    android:scheme="kakao56d45462db421a0576a8bc4710c16560" />
+                    android:scheme="kakao${kakao_app_key}" />
             </intent-filter>
         </activity> <!-- 외부 서비스 메타데이터 -->
         <meta-data

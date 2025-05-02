@@ -5,8 +5,11 @@ import com.maumpeace.safeapp.repository.AlarmRepository
 import com.maumpeace.safeapp.repository.CreateRelationRepository
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.repository.LogoutRepository
+import com.maumpeace.safeapp.repository.RelationChildApproveRepository
 import com.maumpeace.safeapp.repository.RelationChildListRepository
+import com.maumpeace.safeapp.repository.RelationGuardianDeleteRepository
 import com.maumpeace.safeapp.repository.RelationGuardianListRepository
+import com.maumpeace.safeapp.repository.RelationResendRepository
 import com.maumpeace.safeapp.repository.SecessionRepository
 import com.maumpeace.safeapp.util.GlobalApplication
 import com.maumpeace.safeapp.util.TokenManager
@@ -140,6 +143,33 @@ object AppModule {
     @Singleton
     fun provideRelationChildListRepository(apiService: ApiService): RelationChildListRepository {
         return RelationChildListRepository(apiService)
+    }
+
+    /**
+     * 자녀 수락 요청
+     */
+    @Provides
+    @Singleton
+    fun provideRelationChildApproveRepository(apiService: ApiService): RelationChildApproveRepository {
+        return RelationChildApproveRepository(apiService)
+    }
+
+    /**
+     * 보호자 등록 노티 재발송
+     */
+    @Provides
+    @Singleton
+    fun provideRelationResendRepository(apiService: ApiService): RelationResendRepository {
+        return RelationResendRepository(apiService)
+    }
+
+    /**
+     * 보호자 해지 요청
+     */
+    @Provides
+    @Singleton
+    fun provideRelationGuardianDeleteRepository(apiService: ApiService): RelationGuardianDeleteRepository {
+        return RelationGuardianDeleteRepository(apiService)
     }
 
     /**

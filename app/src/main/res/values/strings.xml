@@ -38,6 +38,16 @@
     <string name="text_34">앱을 종료하시겠습니까?</string>
     <string name="text_35">로그아웃 하시겠습니까?</string>
     <string name="text_36">회원탈퇴 하시겠습니까?</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_37">보호자 등록</string>
+    <string name="text_38">보호자 선택</string>
+    <string name="text_39">미등록</string>
+    <string name="text_40">등록된 보호자가 없습니다.</string>
+    <string name="text_41">등록된 자녀가 없습니다.</string>
+    <string name="text_42">거절</string>
+    <string name="text_43">수락</string>
+    <string name="text_44">보호자 등록을 해지하시겠습니까?</string>
+    <string name="text_45">해지하기</string>
+    <string name="text_46">재전송</string>
+    <string name="text_47">재전송하시겠습니까?</string>
+    <string name="text_48">재전송하기</string>
 </resources>

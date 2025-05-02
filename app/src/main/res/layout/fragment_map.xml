@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white">
 
     <LinearLayout
         android:id="@+id/ll_recyclerWaypoint"
@@ -96,7 +97,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:layout_marginStart="4dp"
-                android:background="@drawable/rd_283081_16"
+                android:background="@drawable/rd_7dc2fb_16"
                 android:backgroundTint="@color/blue_7dc2fb"
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="4dp"
@@ -431,7 +432,7 @@
                     android:id="@+id/btn_add_waypoint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_283081_rd_100"
+                    android:background="@drawable/bg_7dc2fb_rd_100"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
@@ -450,7 +451,7 @@
                     android:id="@+id/btn_route_designation"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_283081_rd_100"
+                    android:background="@drawable/bg_7dc2fb_rd_100"
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
