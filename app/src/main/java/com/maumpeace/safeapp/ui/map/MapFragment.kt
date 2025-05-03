@@ -76,7 +76,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var optionBottomSheetBehavior: BottomSheetBehavior<LinearLayout>
     private lateinit var markerInfoBottomSheetBehavior: BottomSheetBehavior<LinearLayout>
 
-    private var isRoutingStarted = false
     private var selectedMarkerData: MapMarkerInfoData? = null
 
     private var isUserTurnedOffCctv = false
@@ -110,21 +109,28 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         binding.btnAddWaypoint.setOnClickListener {
             if (waypoints.size >= 3) {
-                Toast.makeText(requireContext(), "경유지는 최대 3개까지 추가할 수 있습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "경유지는 최대 3개까지 추가할 수 있습니다.", Toast.LENGTH_SHORT)
+                    .show()
                 return@setOnClickListener
             }
 
             selectedMarkerData?.let { waypoint ->
                 // ✅ 도착지와 동일한지 확인
                 if (destination?.lat == waypoint.lat && destination?.lot == waypoint.lot) {
-                    Toast.makeText(requireContext(), "도착지로 지정된 장소는 경유지로 추가할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "도착지로 지정된 장소는 경유지로 추가할 수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
                     return@let
                 }
 
                 // ✅ 이미 경유지로 추가된 경우
-                val alreadyAdded = waypoints.any { it.lat == waypoint.lat && it.lot == waypoint.lot }
+                val alreadyAdded =
+                    waypoints.any { it.lat == waypoint.lat && it.lot == waypoint.lot }
                 if (alreadyAdded) {
-                    Toast.makeText(requireContext(), "이미 경유지로 추가된 장소입니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "이미 경유지로 추가된 장소입니다.", Toast.LENGTH_SHORT)
+                        .show()
                     return@let
                 }
 
@@ -139,13 +145,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 // ✅ 경유지로 이미 등록된 장소인지 확인
                 val isAlreadyWaypoint = waypoints.any { it.lat == data.lat && it.lot == data.lot }
                 if (isAlreadyWaypoint) {
-                    Toast.makeText(requireContext(), "이미 경유지로 추가된 장소입니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "이미 경유지로 추가된 장소입니다.", Toast.LENGTH_SHORT)
+                        .show()
                     return@let
                 }
 
                 // ✅ 이미 도착지로 지정된 경우
                 if (destination?.lat == data.lat && destination?.lot == data.lot) {
-                    Toast.makeText(requireContext(), "이미 도착지로 지정된 장소입니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "이미 도착지로 지정된 장소입니다.", Toast.LENGTH_SHORT)
+                        .show()
                     return@let
                 }
 
@@ -167,7 +175,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 Toast.makeText(requireContext(), "도착지를 지정해주세요.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            isRoutingStarted = true
+            waypointAdapter.isRoutingStarted = true
             updateRoute()
 
             // 버튼 숨기기
@@ -190,7 +198,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         binding.btnCancelRoute.setOnClickListener {
             clearRoute()
-            isRoutingStarted = false
+            waypointAdapter.isRoutingStarted = false
 
             binding.btnRoute.visibility = View.VISIBLE
             binding.btnAddWaypoint.visibility = View.VISIBLE
@@ -313,7 +321,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         waypointAdapter = WaypointAdapter(
             items = waypoints,
             onRemoveClick = { removeWaypoint(it) },
-            isRoutingStarted = isRoutingStarted // 🆕 현재 길찾기 상태 넘기기
         )
         binding.recyclerWaypoint.apply {
             adapter = waypointAdapter
@@ -402,8 +409,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.ivMyLocation.setOnClickListener { moveToCurrentLocation() }
 
         naverMap.addOnCameraChangeListener { _, _ ->
-            // ✨ 길찾기 중에는 마커 상태 변경 금지
-            if (isRoutingStarted) return@addOnCameraChangeListener
+            if (waypointAdapter.isRoutingStarted) return@addOnCameraChangeListener
 
             val zoom = naverMap.cameraPosition.zoom
 
@@ -476,7 +482,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             overlay.visibility = View.GONE
 
             clearRoute()
-            isRoutingStarted = false
+            waypointAdapter.isRoutingStarted =  false
 
             binding.btnRoute.visibility = View.VISIBLE
             binding.btnAddWaypoint.visibility = View.VISIBLE
@@ -508,7 +514,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             } else {
                 // ✨ 길찾기 취소
                 clearRoute()
-                isRoutingStarted = false
+                waypointAdapter.isRoutingStarted =  false
 
                 binding.btnRoute.visibility = View.VISIBLE
                 binding.btnAddWaypoint.visibility = View.VISIBLE
@@ -553,7 +559,9 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private fun startSafetyRoute(destinationData: MapMarkerInfoData) {
         destination = destinationData
         binding.tvDestination.text = "도착지: ${destinationData.address}"
-        isRoutingStarted = true
+
+        waypointAdapter.isRoutingStarted = true
+
 
         // 기존 waypoint 비우기
         waypoints.clear()
@@ -746,9 +754,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         binding.textMarkerAddress.text = markerData.address ?: "주소 없음"
         binding.textMarkerDistance.text = ""
 
-        if(markerData.image != null && markerData.image != "") {
+        if (markerData.image != null && markerData.image != "") {
             binding.imageMarker.visibility = View.VISIBLE
-            Glide.with(this).load(markerData.image).error(R.drawable.ic_default_profile).into(binding.imageMarker)
+            Glide.with(this).load(markerData.image).error(R.drawable.ic_default_profile)
+                .into(binding.imageMarker)
         } else {
             binding.imageMarker.visibility = View.GONE
         }
