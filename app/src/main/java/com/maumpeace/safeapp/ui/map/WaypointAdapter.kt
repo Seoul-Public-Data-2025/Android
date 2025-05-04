@@ -10,8 +10,9 @@ import com.maumpeace.safeapp.model.MapMarkerInfoData
 class WaypointAdapter(
     private val items: List<MapMarkerInfoData>,
     private val onRemoveClick: (position: Int) -> Unit,
-    var isRoutingStarted: Boolean = false
 ) : RecyclerView.Adapter<WaypointAdapter.WaypointViewHolder>() {
+
+    var isRoutingStarted: Boolean = false
 
     inner class WaypointViewHolder(private val binding: ItemWaypointBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -28,7 +29,8 @@ class WaypointAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WaypointViewHolder {
-        val binding = ItemWaypointBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding =
+            ItemWaypointBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return WaypointViewHolder(binding)
     }
 

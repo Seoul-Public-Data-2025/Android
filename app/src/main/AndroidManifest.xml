@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- 필수 기능 및 권한 -->
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false" />
-    <uses-feature
-        android:name="android.hardware.telephony"
-        android:required="false" />
 
+    <!-- 선택적 하드웨어 기능 선언: 기능이 없더라도 앱 설치 가능 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <!-- 권한 설정: 실제로 사용하는 기능에 대한 접근 요청 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -33,48 +31,59 @@
         android:usesCleartextTraffic="true"
         tools:ignore="DiscouragedApi,LockedOrientationActivity"
         tools:targetApi="33">
+
+        <!-- 역할 탭 화면 -->
         <activity
             android:name=".ui.role.RoleTabActivity"
             android:exported="true"
             android:screenOrientation="portrait" />
+
+        <!-- 웹 뷰 화면 -->
         <activity
             android:name=".ui.settings.WebActivity"
             android:exported="true"
-            android:screenOrientation="portrait" /> <!-- 스플래시 화면 -->
+            android:screenOrientation="portrait" />
+
+        <!-- 스플래시 화면 -->
         <activity
             android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- 로그인 화면 -->
+        </activity>
+
+        <!-- 로그인 화면 -->
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true"
-            android:screenOrientation="portrait" /> <!-- 메인 화면 -->
+            android:screenOrientation="portrait" />
+
+        <!-- 메인 화면 -->
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait" /> <!-- 카카오 인증 액티비티 -->
+            android:screenOrientation="portrait" />
+
+        <!-- 카카오 인증 액티비티 -->
         <activity
             android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data
                     android:host="oauth"
                     android:scheme="kakao${kakao_app_key}" />
             </intent-filter>
-        </activity> <!-- 외부 서비스 메타데이터 -->
+        </activity>
+
+        <!-- 외부 서비스 메타데이터 -->
         <meta-data
             android:name="com.kakao.sdk.AppKey"
             android:value="${kakao_app_key}" />
@@ -82,6 +91,7 @@
             android:name="com.naver.maps.map.NCP_KEY_ID"
             android:value="${naver_client_id}" />
 
+        <!-- FCM 메시징 서비스 -->
         <service
             android:name=".service.SafeAppFirebaseMessagingService"
             android:exported="false">
@@ -89,6 +99,7 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
     </application>
 
 </manifest>
