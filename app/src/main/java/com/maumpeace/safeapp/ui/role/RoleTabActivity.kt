@@ -30,6 +30,13 @@ class RoleTabActivity : AppCompatActivity() {
         val adapter = RolePagerAdapter(this)
         binding.viewPager.adapter = adapter
 
+        val defaultTab = when (intent.getStringExtra("start_tab")) {
+            "child" -> 1
+            else -> 0
+        }
+
+        binding.viewPager.setCurrentItem(defaultTab, false)
+
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = if (position == 0) "보호자" else "자녀"
         }.attach()

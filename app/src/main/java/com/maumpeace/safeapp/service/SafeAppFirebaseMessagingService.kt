@@ -30,8 +30,8 @@ class SafeAppFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
 
-        val title = remoteMessage.notification?.title ?: ""
-        val body = remoteMessage.notification?.body ?: ""
+        val title = remoteMessage.notification?.title.orEmpty()
+        val body = remoteMessage.notification?.body.orEmpty()
         val data = remoteMessage.data
 
         if (title.isNotBlank() && body.isNotBlank()) {
@@ -84,11 +84,10 @@ class SafeAppFirebaseMessagingService : FirebaseMessagingService() {
         )
         notificationManager.createNotificationChannel(channel)
 
-        // 🔹 알림 클릭 시 전달할 Intent
         val intent = Intent(this, SplashActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra("push_type", type)
-            putExtra("push_id", id)
+            putExtra(PushConstants.KEY_TYPE, type)
+            putExtra(PushConstants.KEY_ID, id)
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -106,27 +105,4 @@ class SafeAppFirebaseMessagingService : FirebaseMessagingService() {
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
-
-    private fun handlePushIntent(intent: Intent?) {
-        val type = intent?.getStringExtra("push_type")
-        val id = intent?.getStringExtra("push_id")
-
-        if (!type.isNullOrBlank() && !id.isNullOrBlank()) {
-            when (type) {
-                "regist" -> {
-                    // 예: 공지사항 상세 Fragment 로 이동
-//                    Toast.makeText(this, "regist ID $id 로 이동", Toast.LENGTH_SHORT).show()
-
-                    // 실제로는 Fragment 전환 또는 화면 이동 코드 실행
-                }
-
-                "delete" -> {
-//                    Toast.makeText(this, "delete ID $id 로 이동", Toast.LENGTH_SHORT).show()
-                }
-
-                // 기타 케이스
-            }
-        }
-    }
-
 }

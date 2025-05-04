@@ -25,10 +25,10 @@ import com.maumpeace.safeapp.databinding.ActivityMainBinding
 import com.maumpeace.safeapp.ui.base.BaseActivity
 import com.maumpeace.safeapp.ui.dialog.ExitConfirmBottomSheet
 import com.maumpeace.safeapp.ui.map.MapFragment
+import com.maumpeace.safeapp.ui.role.RoleTabActivity
 import com.maumpeace.safeapp.ui.settings.SettingsFragment
 import com.maumpeace.safeapp.util.PushConstants
 import com.maumpeace.safeapp.util.PushEventBus
-import com.maumpeace.safeapp.util.PushHandler
 import com.maumpeace.safeapp.util.UserStateData
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.AndroidEntryPoint
@@ -46,6 +46,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var mapFragment: MapFragment
     private lateinit var settingsFragment: SettingsFragment
     private var lastBackPressedTime = 0L
+    private var hasHandledPush = false
 
     override fun inflateBinding(inflater: LayoutInflater): ActivityMainBinding {
         return ActivityMainBinding.inflate(inflater)
@@ -68,14 +69,36 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        handlePushIntent(intent) // ✅ 새 인텐트 들어올 때도 처리
+        setIntent(intent)
+        handlePushIntent(intent)
     }
 
     private fun handlePushIntent(intent: Intent?) {
+        val alreadyHandled = intent?.getBooleanExtra("push_handled", false) ?: false
+        if (alreadyHandled) return
+
         val type = intent?.getStringExtra(PushConstants.KEY_TYPE)
         val id = intent?.getStringExtra(PushConstants.KEY_ID)
+
         if (!type.isNullOrBlank() && !id.isNullOrBlank()) {
-            PushHandler.handlePush(this, type, id)
+            when (type) {
+                "regist" -> {
+                    startActivity(Intent(this, RoleTabActivity::class.java).apply {
+                        putExtra("start_tab", "child")
+                    })
+                }
+
+                "delete" -> {
+                    Toast.makeText(this, "채팅방 이동 필요 (ID: $id)", Toast.LENGTH_SHORT).show()
+                }
+
+                else -> {
+                    Toast.makeText(this, "알 수 없는 알림 타입", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            intent.putExtra("push_handled", true)
+            setIntent(Intent())
         }
     }
 
@@ -119,8 +142,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun handlePushType(type: String, id: String) {
         when (type) {
             "regist" -> {
-//                Toast.makeText(this, "regist ID $id 로 이동", Toast.LENGTH_SHORT).show()
-                // TODO: 공지 화면 이동 로직 삽입
+                startActivity(Intent(this, RoleTabActivity::class.java).apply {
+                    putExtra("start_tab", "child")
+                })
             }
 
             "delete" -> {
