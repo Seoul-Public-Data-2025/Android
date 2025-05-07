@@ -24,8 +24,8 @@ android {
         applicationId = "com.maumpeace.safeapp"
         minSdk = 28
         targetSdk = 35
-        versionCode = 6
-        versionName = "1.0.0"
+        versionCode = 8
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "KAKAO_NATIVE_KEY", "\"${localProps["KAKAO_NATIVE_KEY"]}\"")

@@ -46,7 +46,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var mapFragment: MapFragment
     private lateinit var settingsFragment: SettingsFragment
     private var lastBackPressedTime = 0L
-    private var hasHandledPush = false
 
     override fun inflateBinding(inflater: LayoutInflater): ActivityMainBinding {
         return ActivityMainBinding.inflate(inflater)
@@ -79,8 +78,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         val type = intent?.getStringExtra(PushConstants.KEY_TYPE)
         val id = intent?.getStringExtra(PushConstants.KEY_ID)
+        val url = intent?.getStringExtra(PushConstants.KEY_URL)
 
-        if (!type.isNullOrBlank() && !id.isNullOrBlank()) {
+        if (!type.isNullOrBlank()) {
             when (type) {
                 "regist" -> {
                     startActivity(Intent(this, RoleTabActivity::class.java).apply {
@@ -90,6 +90,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
                 "delete" -> {
                     Toast.makeText(this, "채팅방 이동 필요 (ID: $id)", Toast.LENGTH_SHORT).show()
+                }
+
+                "child-location" -> {
+                    val mapFragment = supportFragmentManager.findFragmentByTag("MAP") as? MapFragment
+                    mapFragment?.startSse(url)
                 }
 
                 else -> {
@@ -102,20 +107,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun hasLocationPermission(): Boolean {
-        val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        val coarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-        return fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun createLocationRequest(): LocationRequest {
-        return LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).apply {
-            setMinUpdateDistanceMeters(500F)
-            setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-            setWaitForAccurateLocation(true)
-        }.build()
-    }
-
     /**
      * 🔔 PushEventBus 수신하여 In-App Notification 띄우기
      */
@@ -124,12 +115,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 PushEventBus.pushFlow.collect { (title, body, data) ->
                     val type = data["type"]
-                    val id = data["id"]
+                    val url = data["url"]
 
                     showInAppNotification(title, body) {
                         // 🔥 배너 클릭 시도 type/id 기반 분기
-                        if (!type.isNullOrBlank() && !id.isNullOrBlank()) {
-                            handlePushType(type, id)
+                        if (!type.isNullOrBlank()) {
+                            when (type) {
+                                "child-location" -> {
+                                    val mapFragment = supportFragmentManager.findFragmentByTag("MAP") as? MapFragment
+                                    mapFragment?.startSse(url)
+                                }
+                                else -> handlePushType(type)
+                            }
                         } else {
                             Toast.makeText(this@MainActivity, body, Toast.LENGTH_SHORT).show()
                         }
@@ -139,7 +136,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun handlePushType(type: String, id: String) {
+    private fun handlePushType(type: String) {
         when (type) {
             "regist" -> {
                 startActivity(Intent(this, RoleTabActivity::class.java).apply {

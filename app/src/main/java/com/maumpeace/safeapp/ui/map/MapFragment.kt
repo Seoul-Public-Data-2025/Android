@@ -33,6 +33,8 @@ import com.maumpeace.safeapp.model.MapMarkerInfoData
 import com.maumpeace.safeapp.network.NaverDirectionsService
 import com.maumpeace.safeapp.util.TokenManager
 import com.maumpeace.safeapp.util.UserStateData
+import com.maumpeace.safeapp.viewModel.ChildLocationDisconnectViewModel
+import com.maumpeace.safeapp.viewModel.ChildLocationViewModel
 import com.maumpeace.safeapp.viewModel.MapMarkerViewModel
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.geometry.LatLngBounds
@@ -47,7 +49,17 @@ import com.naver.maps.map.overlay.PathOverlay
 import com.naver.maps.map.util.FusedLocationSource
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import org.json.JSONObject
 import timber.log.Timber
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -61,6 +73,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var naverMap: NaverMap
     private lateinit var locationSource: FusedLocationSource
     private val mapMarkerViewModel: MapMarkerViewModel by viewModels()
+    private val childLocationViewModel: ChildLocationViewModel by viewModels()
+    private val childLocationDisconnectViewModel: ChildLocationDisconnectViewModel by viewModels()
 
     private val markerMap = mutableMapOf<String, MutableList<Marker>>()
     private val markerVisibleMap =
@@ -83,11 +97,44 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private var isGuiding = false
     private val cctvMarkerMap = mutableMapOf<LatLng, Marker>()
 
+    private var sseCall: Call? = null
+    private val childLocationMarkerMap = mutableMapOf<String, Marker>()
+
+    private val locationHandler = Handler(Looper.getMainLooper())
+    private var isSendingLocation = false
+
+    private val markerTimeoutMap = mutableMapOf<String, Runnable>()
+
+    private val locationRunnable = object : Runnable {
+        override fun run() {
+            if (!isSendingLocation) return
+
+            val userLatLng = naverMap.locationOverlay.position ?: return
+            val time = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+            val lat = userLatLng.latitude.toString()
+            val lot = userLatLng.longitude.toString()
+            childLocationViewModel.childLocation(time, lat, lot)
+
+            locationHandler.postDelayed(this, 20000) // 다시 20초 후 실행
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    private fun startSendingLocation() {
+        if (isSendingLocation) return
+        isSendingLocation = true
+        locationHandler.post(locationRunnable)
+    }
+
+    private fun stopSendingLocation() {
+        isSendingLocation = false
+        locationHandler.removeCallbacks(locationRunnable)
     }
 
     @SuppressLint("ClickableViewAccessibility", "SetTextI18n", "NotifyDataSetChanged")
@@ -101,6 +148,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         setupBottomSheets()
         setupWaypointRecyclerView()
         setupCategoryClickListeners()
+        setupObservers()
 
         binding.optionBottomSheet.setOnTouchListener { _, _ -> true }
         binding.markerInfoBottomSheet.setOnTouchListener { _, _ -> true }
@@ -217,6 +265,124 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    @SuppressLint("SetTextI18n")
+    fun startSse(url: String?) {
+        sseCall?.cancel()
+        sseCall = null
+
+        if (url.isNullOrBlank()) return
+
+        val sseUrl = "https://maum-seoul.shop$url"
+
+        val request = Request.Builder()
+            .url(sseUrl)
+            .header("Authorization", "Bearer ${TokenManager.getAccessToken(requireContext())}")
+            .build()
+
+        sseCall?.cancel()
+        sseCall = OkHttpClient().newCall(request)
+
+        sseCall?.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                showToastOnMain("SSE 연결 실패")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    showToastOnMain("SSE 실패: ${response.code}")
+                    return
+                }
+
+                response.body?.source()?.let { source ->
+                    while (!source.exhausted()) {
+                        val line = source.readUtf8Line() ?: continue
+                        if (line.startsWith("data:")) {
+                            val jsonString = line.removePrefix("data:").trim()
+                            try {
+                                val json = JSONObject(jsonString)
+                                when (json.getString("type")) {
+                                    "location" -> {
+                                        val lat = json.getDouble("lat")
+                                        val lot = json.getDouble("lot")
+                                        val childEmail = json.getString("childEmail")
+
+                                        Handler(Looper.getMainLooper()).post {
+                                            updateChildLocationMarker(childEmail, lat, lot)
+                                        }
+                                    }
+
+                                    "done" -> {
+                                        val message = json.getString("message")
+
+                                        // 🔐 명시적 disconnect 호출 후에만 처리
+                                        if (childLocationDisconnectViewModel.childLocationDisconnectData.value != null) {
+                                            showToastOnMain(message)
+                                            sseCall?.cancel()
+                                            childLocationMarkerMap.forEach { (_, marker) ->
+                                                marker.map = null
+                                            }
+                                            childLocationMarkerMap.clear()
+                                        } else {
+                                            Timber.w("무효한 'done' 메시지 수신: $message")
+                                        }
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                Timber.e("SSE 파싱 오류: ${e.message}")
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    private fun updateChildLocationMarker(email: String, lat: Double, lot: Double) {
+        val latLng = LatLng(lat, lot)
+        val isNewMarker = !childLocationMarkerMap.containsKey(email)
+
+        val marker = childLocationMarkerMap.getOrPut(email) {
+            Marker().apply {
+                icon = OverlayImage.fromResource(R.drawable.ic_default_profile)
+                width = 200
+                height = 200
+            }
+        }
+
+        marker.position = latLng
+        marker.map = naverMap
+
+        if (isNewMarker) {
+            // 👉 최초 생성 시만 카메라 이동
+            Handler(Looper.getMainLooper()).post {
+                val cameraUpdate = CameraUpdate.scrollAndZoomTo(latLng, 16.0)
+                    .animate(CameraAnimation.Fly, 1000)
+                naverMap.moveCamera(cameraUpdate)
+            }
+        }
+
+        // 타이머 초기화 및 재등록
+        markerTimeoutMap[email]?.let {
+            locationHandler.removeCallbacks(it)
+        }
+
+        val timeoutRunnable = Runnable {
+            marker.map = null
+            markerTimeoutMap.remove(email)
+            marker.position = latLng
+            marker.map = naverMap
+        }
+
+        markerTimeoutMap[email] = timeoutRunnable
+        locationHandler.postDelayed(timeoutRunnable, 20000)
+    }
+
+    private fun showToastOnMain(message: String) {
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun restoreMarkersAfterRouteCancel() {
         val zoom = naverMap.cameraPosition.zoom
         markerMap.forEach { (type, markers) ->
@@ -247,7 +413,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private fun deactivateUnrelatedMarkers() {
         val includedLatLngs = mutableListOf<LatLng>()
-        UserStateData.getMyLatLng()?.let { includedLatLngs.add(it) }
+        naverMap.locationOverlay.position.let { includedLatLngs.add(it) }
         waypoints.forEach { waypoint ->
             waypoint.lat?.toDoubleOrNull()?.let { lat ->
                 waypoint.lot?.toDoubleOrNull()?.let { lot ->
@@ -382,9 +548,19 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onDestroyView() {
+        stopSendingLocation()
+        sseCall?.cancel()
+        sseCall = null
         super.onDestroyView()
         binding.mapView.onDestroy()
         _binding = null
+    }
+
+    override fun onStop() {
+        super.onStop()
+        sseCall?.cancel()
+        sseCall = null
+        Timber.d("MapFragment: SSE 연결 종료됨 (onStop)")
     }
 
     override fun onMapReady(naverMap: NaverMap) {
@@ -482,7 +658,7 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             overlay.visibility = View.GONE
 
             clearRoute()
-            waypointAdapter.isRoutingStarted =  false
+            waypointAdapter.isRoutingStarted = false
 
             binding.btnRoute.visibility = View.VISIBLE
             binding.btnAddWaypoint.visibility = View.VISIBLE
@@ -503,18 +679,26 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 // ✨ '가장 가까운 안전 시설물'을 찾아서 길찾기 시작
                 val nearestMarker = findNearestSafetyMarker()
                 if (nearestMarker != null) {
+                    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    val currentTime = formatter.format(Date())
+                    val position = naverMap.locationOverlay.position
+                    val lat = position.latitude.toString()
+                    val lot = position.longitude.toString()
+
+                    childLocationViewModel.childLocation(currentTime, lat, lot)
                     startSafetyRoute(nearestMarker)
+                    startSendingLocation()
                 } else {
                     Toast.makeText(requireContext(), "근처에 안전 시설물이 없습니다.", Toast.LENGTH_SHORT).show()
                 }
 
+                isGuiding = true
                 textEmergencyMessage.text = "안심경로 안내를 취소할까요?"
                 btnConfirm.text = "안내 취소"
-                isGuiding = true
             } else {
                 // ✨ 길찾기 취소
                 clearRoute()
-                waypointAdapter.isRoutingStarted =  false
+                waypointAdapter.isRoutingStarted = false
 
                 binding.btnRoute.visibility = View.VISIBLE
                 binding.btnAddWaypoint.visibility = View.VISIBLE
@@ -533,12 +717,14 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 textEmergencyMessage.text = "근처 안심경로로\n안내를 시작할까요?"
                 btnConfirm.text = "안내 시작"
                 isGuiding = false
+                childLocationDisconnectViewModel.childLocationDisconnect()
+                stopSendingLocation()
             }
         }
     }
 
     private fun findNearestSafetyMarker(): MapMarkerInfoData? {
-        val currentLocation = UserStateData.getMyLatLng() ?: return null
+        val currentLocation = naverMap.locationOverlay.position ?: return null
 
         // 001(경찰서), 004(지킴이집) 타입만 대상으로 안전지점 찾기
         val candidates = markerMap.filterKeys { it == "001" || it == "004" }.values.flatten()
@@ -546,14 +732,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         return candidates.minByOrNull { marker ->
             val dx = currentLocation.longitude - marker.position.longitude
             val dy = currentLocation.latitude - marker.position.latitude
-            dx * dx + dy * dy // 거리 제곱 (루트 안 씌워도 최소값 찾는데 문제없음)
+            dx * dx + dy * dy
         }?.let { marker ->
-            // 마커를 통해 MapMarkerInfoData 찾기
             mapMarkerViewModel.mapMarkerData.value?.result?.find { data ->
-                data.lat?.toDoubleOrNull() == marker.position.latitude && data.lot?.toDoubleOrNull() == marker.position.longitude
+                data.lat?.toDoubleOrNull() == marker.position.latitude &&
+                        data.lot?.toDoubleOrNull() == marker.position.longitude
             }
         }
     }
+
 
     @SuppressLint("SetTextI18n", "NotifyDataSetChanged")
     private fun startSafetyRoute(destinationData: MapMarkerInfoData) {
@@ -592,11 +779,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             if (location != null) {
                 val userLatLng = LatLng(location.latitude, location.longitude)
 
-                // 바로 카메라 이동
+                UserStateData.setMyLatLng(userLatLng)
+
                 naverMap.moveCamera(CameraUpdate.scrollTo(userLatLng))
             }
         }
     }
+
 
     private fun getLastKnownLocation(naverMap: NaverMap) {
         if (requireContext().let {
@@ -763,10 +952,41 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
+    private fun setupObservers() {
+        childLocationViewModel.errorMessage.observe(viewLifecycleOwner) { errorMsg ->
+            errorMsg?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            }
+        }
+        childLocationViewModel.childLocationData.observe(viewLifecycleOwner) { result ->
+            result?.let {
+                Toast.makeText(requireContext(), "위치 전송 성공", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        childLocationDisconnectViewModel.errorMessage.observe(viewLifecycleOwner) { errorMsg ->
+            errorMsg?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        childLocationDisconnectViewModel.childLocationDisconnectData.observe(viewLifecycleOwner) { result ->
+            result?.let {
+                Toast.makeText(requireContext(), "위치 전송 종료 성공", Toast.LENGTH_SHORT).show()
+
+                // ✅ 자녀 위치 마커 제거
+                childLocationMarkerMap.forEach { (_, marker) ->
+                    marker.map = null
+                }
+              childLocationMarkerMap.clear()
+            }
+        }
+    }
+
+
     private fun moveCameraToRoute() {
         val boundsBuilder = LatLngBounds.Builder()
-
-        UserStateData.getMyLatLng().let { boundsBuilder.include(it) }
+        naverMap.locationOverlay.position.let { boundsBuilder.include(it) }
         waypoints.forEach { waypoint ->
             waypoint.lat?.toDoubleOrNull()?.let { lat ->
                 waypoint.lot?.toDoubleOrNull()?.let { lot ->
@@ -821,13 +1041,13 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun updateRoute() {
-        val start = UserStateData.getMyLatLng()
-        val goal = destination
-
+        val start = naverMap.locationOverlay.position
         if (start == null) {
             requestUserLocationThenRoute()
             return
         }
+
+        val goal = destination
 
         if (goal == null || goal.lat.isNullOrBlank() || goal.lot.isNullOrBlank()) {
             Toast.makeText(requireContext(), "도착지 정보가 없습니다.", Toast.LENGTH_SHORT).show()
@@ -853,6 +1073,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
                 val path = response.route.traoptimal.first().path
                 val coords = path.map { LatLng(it[1], it[0]) }
+                if (coords.isEmpty()) {
+                    Toast.makeText(requireContext(), "경로가 없습니다.", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
 
                 currentPolyline?.map = null
 

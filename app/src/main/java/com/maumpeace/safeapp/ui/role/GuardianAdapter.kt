@@ -73,6 +73,7 @@ class GuardianAdapter(
                     }
                 } else {
                     text = "미등록"
+                    background = null
                     setTextColor(binding.root.context.getColor(R.color.orange_ffaa62))
                     setOnClickListener(null) // 클릭 방지
                 }

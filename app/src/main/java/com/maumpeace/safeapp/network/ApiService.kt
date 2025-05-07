@@ -1,8 +1,11 @@
 package com.maumpeace.safeapp.network
 
 import com.maumpeace.safeapp.model.AlarmData
+import com.maumpeace.safeapp.model.ChildLocationData
+import com.maumpeace.safeapp.model.ChildLocationDisconnectData
 import com.maumpeace.safeapp.model.CreateRelationData
 import com.maumpeace.safeapp.model.FetchAlarmData
+import com.maumpeace.safeapp.model.FetchChildLocation
 import com.maumpeace.safeapp.model.FetchCreateRelationData
 import com.maumpeace.safeapp.model.FetchLoginData
 import com.maumpeace.safeapp.model.FetchLogoutData
@@ -130,6 +133,20 @@ interface ApiService {
     suspend fun relationResend(
         @Body fetchRelationResendData: FetchRelationResendData
     ): RelationResendData
+
+    /*
+    * 자녀 위치 전송(SSE)
+    */
+    @POST("child-location/")
+    suspend fun childLocation(
+        @Body fetchChildLocation: FetchChildLocation
+    ): ChildLocationData
+
+    /*
+    * 자녀 위치 전송 종료(SSE Disconnect)
+    */
+    @POST("child-disconnection/")
+    suspend fun childLocationDisconnect(): ChildLocationDisconnectData
 
     /*
     * 보호자 해지 요청

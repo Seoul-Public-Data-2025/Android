@@ -59,11 +59,13 @@ class SplashActivity : AppCompatActivity() {
             && AuthApiClient.instance.hasToken()) {
             val type = intent?.getStringExtra(PushConstants.KEY_TYPE)
             val id = intent?.getStringExtra(PushConstants.KEY_ID)
+            val url = intent?.getStringExtra(PushConstants.KEY_URL)
 
             Intent(this, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                 putExtra(PushConstants.KEY_TYPE, type)
                 putExtra(PushConstants.KEY_ID, id)
+                putExtra(PushConstants.KEY_URL, url)
                 putExtra("push_handled", false)
             }
         } else {
