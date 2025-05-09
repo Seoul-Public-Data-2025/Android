@@ -38,7 +38,7 @@ MVVM 아키텍처 기반으로 안정적이고 유지보수 가능한 구조로 
 ## 📁 프로젝트 구조
 
 마음편은 Android MVVM 아키텍처 패턴을 기반으로 모듈화되어 있으며, 각 계층은 다음과 같은 역할을 수행합니다:
-- 📁 model/ - 데이터 클래스 (API 응답 모델 등)
+- 📁 model - 데이터 클래스 (API 응답 모델 등)
 - 📁 network - Retrofit API 정의 및 Hilt 모듈
 - 📁 repository - 데이터 처리 및 추상화 계층
 - 📁 service - FCM 서비스
