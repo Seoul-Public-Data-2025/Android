@@ -24,8 +24,8 @@ android {
         applicationId = "com.maumpeace.safeapp"
         minSdk = 28
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.0.1"
+        versionCode = 12
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "KAKAO_NATIVE_KEY", "\"${localProps["KAKAO_NATIVE_KEY"]}\"")
@@ -102,6 +102,8 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.messaging.ktx)
+
+    implementation (libs.timber.v471)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

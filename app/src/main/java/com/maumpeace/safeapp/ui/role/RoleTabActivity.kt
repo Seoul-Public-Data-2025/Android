@@ -48,9 +48,9 @@ class RoleTabActivity : AppCompatActivity() {
             setDisplayShowTitleEnabled(false)
             setDisplayHomeAsUpEnabled(true)
         }
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE
-        ) // 캡처 방지
+//        window.setFlags(
+//            WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE
+//        ) // 캡처 방지
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

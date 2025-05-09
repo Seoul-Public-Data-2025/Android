@@ -80,7 +80,7 @@ class SettingsFragment : Fragment() {
         binding.switchAlarm.setOnCheckedChangeListener { buttonView, isChecked ->
             val hashedPhoneNumber = TokenManager.getHashedPhoneNumber(requireContext())
             if (hashedPhoneNumber.isNullOrBlank()) {
-                Toast.makeText(requireContext(), "전화번호 정보가 없습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "전화번호 정보가 없어요", Toast.LENGTH_SHORT).show()
                 buttonView.isChecked = !isChecked // 롤백
                 return@setOnCheckedChangeListener
             }
@@ -160,7 +160,7 @@ class SettingsFragment : Fragment() {
                                         Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 })
                             Toast.makeText(
-                                requireContext(), "서비스를 이용해주셔서 감사합니다", Toast.LENGTH_SHORT
+                                requireContext(), "서비스를 이용해주셔서 감사합니다 ☺️", Toast.LENGTH_SHORT
                             ).show()
                         }
                     }

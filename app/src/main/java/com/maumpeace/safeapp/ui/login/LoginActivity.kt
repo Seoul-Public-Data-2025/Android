@@ -78,7 +78,7 @@ class LoginActivity : AppCompatActivity() {
                     ActivityCompat.shouldShowRequestPermissionRationale(this, it)
                 }
             ) {
-                Toast.makeText(this, "로그인을 위해 권한이 필요합니다.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "로그인을 위해 권한이 필요해요", Toast.LENGTH_LONG).show()
             }
 
             ActivityCompat.requestPermissions(this, deniedPermissions.toTypedArray(), 1234)
@@ -169,7 +169,7 @@ class LoginActivity : AppCompatActivity() {
             }
 
             if (deniedPermanently) {
-                Toast.makeText(this, "권한이 거부되었습니다. 설정에서 권한을 허용해주세요.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "권한이 거부되었습니다. 설정에서 권한을 허용해주세요", Toast.LENGTH_LONG).show()
                 val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = android.net.Uri.fromParts("package", packageName, null)
                 }
