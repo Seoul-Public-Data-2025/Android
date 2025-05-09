@@ -52,4 +52,21 @@
         app:layout_constraintStart_toEndOf="@+id/iv_logo"
         app:layout_constraintTop_toBottomOf="@+id/tv_notification_title"
         tools:ignore="SpUsage" />
+
+    <TextView
+        android:id="@+id/tv_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:text="@string/text_49"
+        android:textColor="@color/blue_7dc2fb"
+        android:textSize="14dp"
+        android:textStyle="normal"
+        android:typeface="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_notification_body"
+        tools:ignore="RtlSymmetry,SpUsage" />
 </androidx.constraintlayout.widget.ConstraintLayout>

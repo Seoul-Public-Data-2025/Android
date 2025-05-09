@@ -1,9 +1,11 @@
 package com.maumpeace.safeapp.ui.main
 
+// 필요한 Android 및 앱 관련 라이브러리 import
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.widget.Toast
@@ -34,27 +36,23 @@ import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
-/**
- * ✅ MainActivity
- * - 지도 & 설정 화면 전환
- * - 위치 정보 수집
- * - 안심 버튼 처리
- */
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private lateinit var mapFragment: MapFragment
     private lateinit var settingsFragment: SettingsFragment
     private var lastBackPressedTime = 0L
-    private var hasHandledPush = false
 
+    // 바인딩 초기화 함수
     override fun inflateBinding(inflater: LayoutInflater): ActivityMainBinding {
         return ActivityMainBinding.inflate(inflater)
     }
 
+    // 액티비티 생성 시 초기화 작업 수행
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 프래그먼트 및 UI 초기 설정
         setupFragments()
         setupBottomNavigation()
         setupSafetyButton()
@@ -62,38 +60,50 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         observePushEvents()
         handlePushIntent(intent)
 
+        // 백버튼 처리 커스텀
         onBackPressedDispatcher.addCallback(this) {
             handleBackPressed()
         }
     }
 
+    // 푸시 인텐트 새로 들어올 때 처리
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         setIntent(intent)
         handlePushIntent(intent)
     }
 
+    // 푸시 알림 인텐트 수신 시 화면 전환 또는 기능 수행
     private fun handlePushIntent(intent: Intent?) {
         val alreadyHandled = intent?.getBooleanExtra("push_handled", false) ?: false
         if (alreadyHandled) return
 
         val type = intent?.getStringExtra(PushConstants.KEY_TYPE)
         val id = intent?.getStringExtra(PushConstants.KEY_ID)
+        val url = intent?.getStringExtra(PushConstants.KEY_URL)
 
-        if (!type.isNullOrBlank() && !id.isNullOrBlank()) {
+        if (!type.isNullOrBlank()) {
             when (type) {
-                "regist" -> {
+                "regist", "delete" -> {
+                    // 자녀 탭 화면으로 이동
                     startActivity(Intent(this, RoleTabActivity::class.java).apply {
                         putExtra("start_tab", "child")
                     })
                 }
 
-                "delete" -> {
-                    Toast.makeText(this, "채팅방 이동 필요 (ID: $id)", Toast.LENGTH_SHORT).show()
+                "child-location" -> {
+                    // 자녀 위치 실시간 연결
+                    val mapFragment =
+                        supportFragmentManager.findFragmentByTag("MAP") as? MapFragment
+                    mapFragment?.apply {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            startSse(url)
+                        }, 300)
+                    }
                 }
 
                 else -> {
-                    Toast.makeText(this, "알 수 없는 알림 타입", Toast.LENGTH_SHORT).show()
+                    // 알 수 없는 타입
                 }
             }
 
@@ -102,34 +112,29 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun hasLocationPermission(): Boolean {
-        val fine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        val coarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-        return fine == PackageManager.PERMISSION_GRANTED || coarse == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun createLocationRequest(): LocationRequest {
-        return LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000).apply {
-            setMinUpdateDistanceMeters(500F)
-            setGranularity(Granularity.GRANULARITY_PERMISSION_LEVEL)
-            setWaitForAccurateLocation(true)
-        }.build()
-    }
-
-    /**
-     * 🔔 PushEventBus 수신하여 In-App Notification 띄우기
-     */
+    // PushEventBus를 통해 수신된 푸시를 앱 내 배너로 표시
     private fun observePushEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 PushEventBus.pushFlow.collect { (title, body, data) ->
                     val type = data["type"]
-                    val id = data["id"]
+                    val url = data["url"]
 
                     showInAppNotification(title, body) {
-                        // 🔥 배너 클릭 시도 type/id 기반 분기
-                        if (!type.isNullOrBlank() && !id.isNullOrBlank()) {
-                            handlePushType(type, id)
+                        if (!type.isNullOrBlank()) {
+                            when (type) {
+                                "child-location" -> {
+                                    val mapFragment =
+                                        supportFragmentManager.findFragmentByTag("MAP") as? MapFragment
+                                    mapFragment?.apply {
+                                        Handler(Looper.getMainLooper()).postDelayed({
+                                            startSse(url)
+                                        }, 300)
+                                    }
+                                }
+
+                                else -> handlePushType(type)
+                            }
                         } else {
                             Toast.makeText(this@MainActivity, body, Toast.LENGTH_SHORT).show()
                         }
@@ -139,34 +144,32 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
-    private fun handlePushType(type: String, id: String) {
-        when (type) {
-            "regist" -> {
-                startActivity(Intent(this, RoleTabActivity::class.java).apply {
-                    putExtra("start_tab", "child")
-                })
-            }
+    // 푸시 타입 분기에 따른 처리 함수
+    private fun handlePushType(type: String) = when (type) {
+        "regist", "delete" -> {
+            startActivity(Intent(this, RoleTabActivity::class.java).apply {
+                putExtra("start_tab", "child")
+            })
+        }
 
-            "delete" -> {
-//                Toast.makeText(this, "delete ID $id 로 이동", Toast.LENGTH_SHORT).show()
-                // TODO: 채팅방 화면 이동
-            }
-
-            else -> {
-//                Toast.makeText(this, "알 수 없는 알림 타입", Toast.LENGTH_SHORT).show()
-            }
+        else -> {
+            // 알 수 없는 타입
         }
     }
 
+    // MapFragment, SettingsFragment 초기화 및 추가
     private fun setupFragments() {
         mapFragment = MapFragment()
         settingsFragment = SettingsFragment()
 
-        supportFragmentManager.beginTransaction().add(R.id.fragment_container, mapFragment, "MAP")
-            .add(R.id.fragment_container, settingsFragment, "SETTINGS").hide(settingsFragment)
+        supportFragmentManager.beginTransaction()
+            .add(R.id.fragment_container, mapFragment, "MAP")
+            .add(R.id.fragment_container, settingsFragment, "SETTINGS")
+            .hide(settingsFragment)
             .commit()
     }
 
+    // 하단 네비게이션 바 설정 및 탭 전환 처리
     private fun setupBottomNavigation() {
         val bottomNav: BottomNavigationView = binding.bottomNav
 
@@ -187,6 +190,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    // 현재 표시할 프래그먼트를 전환
     private fun switchFragment(fragmentToShow: Fragment) {
         supportFragmentManager.beginTransaction().apply {
             supportFragmentManager.fragments.forEach { hide(it) }
@@ -194,16 +198,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }.commit()
     }
 
+    // 위치 정보 수집 시작
     private fun startLocationUpdates() {
         if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             return
         }
 
+        // 위치 요청 조건 설정
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY, 1000
         ).apply {
@@ -212,16 +221,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             setWaitForAccurateLocation(true)
         }.build()
 
+        // 마지막 위치 가져와 저장
         LocationServices.getFusedLocationProviderClient(this).lastLocation.addOnSuccessListener { location ->
             location?.let {
                 UserStateData.setMyLatLng(LatLng(it.latitude, it.longitude))
             }
         }
 
+        // 실시간 위치 업데이트 요청
         LocationServices.getFusedLocationProviderClient(this)
             .requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
     }
 
+    // 위치 콜백 정의
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             super.onLocationResult(locationResult)
@@ -231,6 +243,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    // 안심 버튼 클릭 시 지도 탭으로 전환 및 기능 실행
     private fun setupSafetyButton() {
         binding.btnSafety.setOnClickListener {
             binding.bottomNav.selectedItemId = R.id.nav_map
@@ -238,6 +251,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    // 백버튼 눌렀을 때 처리
     private fun handleBackPressed() {
         val currentTime = System.currentTimeMillis()
 
@@ -264,6 +278,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
     }
 
+    // 앱 종료 확인 다이얼로그 표시
     private fun showExitConfirmDialog() {
         val existingDialog = supportFragmentManager.findFragmentByTag("ExitConfirmDialog")
         if (existingDialog != null && existingDialog.isVisible) {

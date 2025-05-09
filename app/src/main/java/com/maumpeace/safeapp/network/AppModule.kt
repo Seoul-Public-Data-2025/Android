@@ -2,6 +2,8 @@ package com.maumpeace.safeapp.network
 
 import com.maumpeace.safeapp.BuildConfig
 import com.maumpeace.safeapp.repository.AlarmRepository
+import com.maumpeace.safeapp.repository.ChildLocationDisconnectRepository
+import com.maumpeace.safeapp.repository.ChildLocationRepository
 import com.maumpeace.safeapp.repository.CreateRelationRepository
 import com.maumpeace.safeapp.repository.LoginRepository
 import com.maumpeace.safeapp.repository.LogoutRepository
@@ -170,6 +172,24 @@ object AppModule {
     @Singleton
     fun provideRelationGuardianDeleteRepository(apiService: ApiService): RelationGuardianDeleteRepository {
         return RelationGuardianDeleteRepository(apiService)
+    }
+
+    /**
+     * 자녀 위치 전송(SSE)
+     */
+    @Provides
+    @Singleton
+    fun provideChildLocationRepository(apiService: ApiService): ChildLocationRepository {
+        return ChildLocationRepository(apiService)
+    }
+
+    /**
+     * 자녀 위치 전송 종료(SSE Disconnect)
+     */
+    @Provides
+    @Singleton
+    fun provideChildLocationDisconnectRepository(apiService: ApiService): ChildLocationDisconnectRepository {
+        return ChildLocationDisconnectRepository(apiService)
     }
 
     /**
