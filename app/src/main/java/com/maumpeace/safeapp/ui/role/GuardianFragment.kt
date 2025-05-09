@@ -64,7 +64,7 @@ class GuardianFragment : Fragment() {
     private fun observeRelationResend() {
         relationResendViewModel.relationResendData.observe(viewLifecycleOwner) { result ->
             result?.let {
-                Toast.makeText(requireContext(), "재전송에 성공하였습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "재전송했어요", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -144,7 +144,7 @@ class GuardianFragment : Fragment() {
                         binding.tvNotGuardianList.visibility = View.VISIBLE
                     }
                 }
-                Toast.makeText(requireContext(), "보호자 관계가 해지되었습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "보호자 관계가 해지되었어요", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -251,7 +251,7 @@ class GuardianFragment : Fragment() {
         if (requestCode == REQUEST_CONTACT_PERMISSION && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             showContactPickerBottomSheet()
         } else {
-            Toast.makeText(requireContext(), "연락처 접근 권한이 필요합니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "연락처 접근 권한이 필요해요", Toast.LENGTH_SHORT).show()
         }
     }
 

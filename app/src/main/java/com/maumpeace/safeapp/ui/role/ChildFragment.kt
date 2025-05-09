@@ -71,7 +71,7 @@ class ChildFragment : Fragment() {
     private fun observeApproveRelation() {
         relationChildApproveViewModel.relationChildApproveData.observe(viewLifecycleOwner) { result ->
             result?.let {
-                Toast.makeText(requireContext(), "자녀 요청을 수락했습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "자녀 요청을 수락했어요", Toast.LENGTH_SHORT).show()
                 viewModel.relationChildList() // 목록 갱신
             }
         }

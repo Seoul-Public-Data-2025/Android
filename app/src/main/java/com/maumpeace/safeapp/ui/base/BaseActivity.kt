@@ -45,9 +45,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                 onClickAction?.invoke()
             }
 
-            Handler(Looper.getMainLooper()).postDelayed({
+            tvClose.setOnClickListener {
                 root.visibility = View.GONE
-            }, 5000)
+            }
         }
     }
 

@@ -11,11 +11,10 @@ import android.view.WindowManager
 import android.view.animation.AccelerateInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import com.kakao.sdk.auth.AuthApiClient
-import com.kakao.sdk.user.UserApiClient
-import com.maumpeace.safeapp.R
 import com.maumpeace.safeapp.databinding.ActivitySplashBinding
 import com.maumpeace.safeapp.ui.login.LoginActivity
 import com.maumpeace.safeapp.ui.main.MainActivity
+import com.maumpeace.safeapp.util.PushConstants
 import com.maumpeace.safeapp.util.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -58,7 +57,17 @@ class SplashActivity : AppCompatActivity() {
 
         val intent = if (isLoginSuccess && !accessToken.isNullOrBlank()
             && AuthApiClient.instance.hasToken()) {
-            Intent(this, MainActivity::class.java)
+            val type = intent?.getStringExtra(PushConstants.KEY_TYPE)
+            val id = intent?.getStringExtra(PushConstants.KEY_ID)
+            val url = intent?.getStringExtra(PushConstants.KEY_URL)
+
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra(PushConstants.KEY_TYPE, type)
+                putExtra(PushConstants.KEY_ID, id)
+                putExtra(PushConstants.KEY_URL, url)
+                putExtra("push_handled", false)
+            }
         } else {
             Intent(this, LoginActivity::class.java)
         }

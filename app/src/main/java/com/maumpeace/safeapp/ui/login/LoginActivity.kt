@@ -53,7 +53,7 @@ class LoginActivity : AppCompatActivity() {
 
         setupObservers()
         setupListeners()
-        logHashedPhoneNumberWithPermissionCheck() // 최초 앱 진입 시 권한 확인 및 로그
+        logHashedPhoneNumberWithPermissionCheck()
 
     }
 
@@ -78,7 +78,7 @@ class LoginActivity : AppCompatActivity() {
                     ActivityCompat.shouldShowRequestPermissionRationale(this, it)
                 }
             ) {
-                Toast.makeText(this, "로그인을 위해 권한이 필요합니다.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "로그인을 위해 권한이 필요해요", Toast.LENGTH_LONG).show()
             }
 
             ActivityCompat.requestPermissions(this, deniedPermissions.toTypedArray(), 1234)
@@ -90,15 +90,32 @@ class LoginActivity : AppCompatActivity() {
         val phoneNumber = telephonyManager.line1Number
 
         if (!phoneNumber.isNullOrBlank()) {
-            val sha256 = MessageDigest.getInstance("SHA-256")
-            val hash = sha256.digest(phoneNumber.toByteArray())
-            val encoded = Base64.encodeToString(hash, Base64.NO_WRAP)
-            Timber.tag("PHONE_HASH").d("전화번호 해시: $encoded")
-
-            TokenManager.saveHashedPhoneNumber(this, encoded)
+            try {
+                val hashed = hashPhoneNumber(phoneNumber)
+                Timber.tag("PHONE_HASH").d("전화번호 해시: $hashed")
+                TokenManager.saveHashedPhoneNumber(this, hashed)
+            } catch (e: IllegalArgumentException) {
+                Timber.tag("PHONE_HASH").w("전화번호 해시 실패: ${e.message}")
+            }
         } else {
             Timber.tag("PHONE_HASH").w("전화번호를 불러오지 못했습니다.")
         }
+    }
+
+    /**
+     * 전화번호를 SHA-256 + Base64로 해시 처리
+     */
+    private fun hashPhoneNumber(phone: String): String {
+        val clean = phone.replace("\\s".toRegex(), "")
+            .replace("-", "")
+            .replace("+82", "0")
+            .filter { it.isDigit() }
+
+        if (clean.isBlank()) throw IllegalArgumentException("Invalid phone number")
+
+        val sha256 = MessageDigest.getInstance("SHA-256")
+        val hash = sha256.digest(clean.toByteArray())
+        return Base64.encodeToString(hash, Base64.NO_WRAP)
     }
 
     @SuppressLint("MissingPermission", "HardwareIds")
@@ -111,13 +128,13 @@ class LoginActivity : AppCompatActivity() {
         val telephonyManager = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
         val phoneNumber = telephonyManager.line1Number
 
-        val hashedPhoneNumber = phoneNumber?.let {
-            val sha256 = MessageDigest.getInstance("SHA-256")
-            val hash = sha256.digest(it.toByteArray())
-            Base64.encodeToString(hash, Base64.NO_WRAP)
-        } ?: ""
+        val hashedPhoneNumber = try {
+            phoneNumber?.let { hashPhoneNumber(it) } ?: ""
+        } catch (e: IllegalArgumentException) {
+            Timber.tag("PHONE_HASH").w("전화번호 해시 실패: ${e.message}")
+            ""
+        }
 
-        // FCM 토큰 발급
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 Timber.tag("FCM").w("FCM 토큰 가져오기 실패: ${task.exception}")
@@ -127,10 +144,8 @@ class LoginActivity : AppCompatActivity() {
             val fcmToken = task.result ?: ""
             Timber.tag("FCM").d("FCM 토큰: $fcmToken")
 
-            // ✅ 저장: 최신 토큰 캐싱
             TokenManager.saveFcmToken(this, fcmToken)
 
-            // ✅ ViewModel로 전달
             loginViewModel.loginWithKakao(
                 kakaoAccessToken = accessToken,
                 email = email,
@@ -154,8 +169,7 @@ class LoginActivity : AppCompatActivity() {
             }
 
             if (deniedPermanently) {
-                Toast.makeText(this, "권한이 거부되었습니다. 설정에서 권한을 허용해주세요.", Toast.LENGTH_LONG).show()
-                // 설정 화면으로 이동 유도
+                Toast.makeText(this, "권한이 거부되었습니다. 설정에서 권한을 허용해주세요", Toast.LENGTH_LONG).show()
                 val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = android.net.Uri.fromParts("package", packageName, null)
                 }
@@ -163,7 +177,6 @@ class LoginActivity : AppCompatActivity() {
                 return
             }
 
-            // 알림 권한 저장
             val isNotificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 permissions.indexOf(Manifest.permission.POST_NOTIFICATIONS).takeIf { it != -1 }
                     ?.let { grantResults[it] == PackageManager.PERMISSION_GRANTED } ?: false
